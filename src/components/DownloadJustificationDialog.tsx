@@ -75,18 +75,30 @@ export const DownloadJustificationDialog = ({
         } catch { /* noop */ }
         throw new Error(msg);
       }
-      const url = (data as any)?.url;
-      if (!url) throw new Error("No URL returned");
-      // Trigger the download in a new tab — short-lived signed URL
+      const d = data as any;
+      let blobUrl: string | null = null;
+      let revoke = false;
+      if (d?.content_b64 && d?.content_type) {
+        const bin = atob(d.content_b64);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        const blob = new Blob([arr], { type: d.content_type });
+        blobUrl = URL.createObjectURL(blob);
+        revoke = true;
+      } else if (d?.url) {
+        blobUrl = d.url;
+      }
+      if (!blobUrl) throw new Error("No download payload");
       const a = document.createElement("a");
-      a.href = url;
+      a.href = blobUrl;
       a.download = filename;
       a.target = "_blank";
       a.rel = "noopener";
       document.body.appendChild(a);
       a.click();
       a.remove();
-      toast.success("Download started · justification logged");
+      if (revoke) setTimeout(() => URL.revokeObjectURL(blobUrl!), 5000);
+      toast.success(d?.watermarked ? "Watermarked download started · logged" : "Download started · logged");
       reset();
       onOpenChange(false);
     } catch (e: any) {

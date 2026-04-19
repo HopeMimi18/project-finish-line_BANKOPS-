@@ -98,6 +98,14 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/clients" className={() => linkClass(isActive("/clients"))}>
+                      <Building2 className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>Clients</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

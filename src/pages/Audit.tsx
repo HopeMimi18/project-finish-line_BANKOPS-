@@ -132,9 +132,7 @@ const Audit = () => {
                       })}
                     </td>
                     <td className="px-4 py-2.5 text-xs">
-                      {(e as { profiles?: { username?: string } }).profiles?.username ?? (
-                        <span className="text-muted-foreground">—</span>
-                      )}
+                      {e._username ?? <span className="text-muted-foreground">—</span>}
                     </td>
                     <td className="px-4 py-2.5">
                       <span className="mono text-xs">{e.action}</span>

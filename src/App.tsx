@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,9 +8,11 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
+import Upload from "./pages/Upload";
+import Tokens from "./pages/Tokens";
+import Audit from "./pages/Audit";
 import Placeholder from "./pages/Placeholder";
 import NotFound from "./pages/NotFound";
-import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -39,26 +41,8 @@ const App = () => (
               }
             >
               <Route path="/" element={<Index />} />
-              <Route
-                path="/upload"
-                element={
-                  <Placeholder
-                    title="Upload & Store"
-                    description="Encrypt documents at rest and tag them by classification."
-                    step="Step 2"
-                  />
-                }
-              />
-              <Route
-                path="/tokens"
-                element={
-                  <Placeholder
-                    title="Tokens"
-                    description="Issue scoped, time-bound access tokens for AI tasks."
-                    step="Step 2"
-                  />
-                }
-              />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/tokens" element={<Tokens />} />
               <Route
                 path="/assist"
                 element={
@@ -69,16 +53,7 @@ const App = () => (
                   />
                 }
               />
-              <Route
-                path="/audit"
-                element={
-                  <Placeholder
-                    title="Audit"
-                    description="Append-only, metadata-only trail of every action."
-                    step="Step 2"
-                  />
-                }
-              />
+              <Route path="/audit" element={<Audit />} />
               <Route
                 path="/admin"
                 element={

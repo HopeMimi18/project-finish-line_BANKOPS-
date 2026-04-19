@@ -1,0 +1,85 @@
+import { supabase } from "@/integrations/supabase/client";
+
+interface LogArgs {
+  action: string;
+  resourceCid?: string | null;
+  documentId?: string | null;
+  result?: "ok" | "error" | "denied";
+  meta?: Record<string, unknown>;
+}
+
+/**
+ * Append a metadata-only audit event for the current user.
+ * Failures are logged to console but never thrown — auditing must
+ * not break the user flow.
+ */
+export async function logAudit({
+  action,
+  resourceCid = null,
+  documentId = null,
+  result = "ok",
+  meta = {},
+}: LogArgs) {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return;
+    const { error } = await supabase.from("audit_events").insert({
+      user_id: userId,
+      action,
+      resource_cid: resourceCid,
+      document_id: documentId,
+      result,
+      meta: meta as never,
+    });
+    if (error) console.warn("audit log failed", error.message);
+  } catch (e) {
+    console.warn("audit log threw", e);
+  }
+}
+
+/** Generate a short opaque CID for a stored document. */
+export function generateCid(): string {
+  // 16 random bytes → base36-ish short id
+  const arr = new Uint8Array(12);
+  crypto.getRandomValues(arr);
+  return (
+    "doc_" +
+    Array.from(arr)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("")
+  );
+}
+
+/** Generate an opaque ephemeral token string. */
+export function generateTokenString(): string {
+  const arr = new Uint8Array(24);
+  crypto.getRandomValues(arr);
+  return (
+    "tk_" +
+    Array.from(arr)
+      .map((b) => b.toString(36).padStart(2, "0"))
+      .join("")
+      .slice(0, 40)
+  );
+}
+
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function timeRemaining(expiresAt: string): {
+  expired: boolean;
+  label: string;
+} {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return { expired: true, label: "expired" };
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return { expired: false, label: `${s}s` };
+  const m = Math.floor(s / 60);
+  if (m < 60) return { expired: false, label: `${m}m ${s % 60}s` };
+  const h = Math.floor(m / 60);
+  return { expired: false, label: `${h}h ${m % 60}m` };
+}

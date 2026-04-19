@@ -171,6 +171,23 @@ const Assist = () => {
                   </span>
                 )}
               </div>
+              {result.pii && result.pii.redacted > 0 && (
+                <div className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-xs">
+                  <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+                  <div className="space-y-1">
+                    <div className="font-medium text-warning">
+                      {result.pii.redacted} sensitive item(s) redacted before AI call
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 text-muted-foreground">
+                      {result.pii.findings.map((f) => (
+                        <span key={f.type} className="mono rounded bg-background/60 px-1.5 py-0.5">
+                          {f.count}× {f.type}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
               <pre className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground">
                 {result.output || "(empty response)"}
               </pre>

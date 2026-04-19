@@ -222,7 +222,26 @@ const Upload = () => {
               </p>
             </div>
 
-            {preview && (
+            <div className="space-y-1.5">
+              <Label htmlFor="client">Client (optional)</Label>
+              <Select value={clientId} onValueChange={setClientId} disabled={busy}>
+                <SelectTrigger id="client">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_CLIENT}>— No client —</SelectItem>
+                  {clients.data?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <span className="mono mr-2">{c.code}</span>
+                      <span className="text-muted-foreground">{c.name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                If set, only users <strong>assigned to this client</strong> (plus managers/admins) can view this document — even within the same classification.
+              </p>
+            </div>
               <div className="space-y-1.5">
                 <Label>Preview (first 2.5 KB)</Label>
                 <Textarea readOnly value={preview} className="mono h-40 text-xs" />

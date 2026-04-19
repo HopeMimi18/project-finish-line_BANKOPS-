@@ -374,6 +374,8 @@ Deno.serve(async (req) => {
       truncated,
       input_chars: text.length,
       output_chars: output.length,
+      pii_findings: findings,
+      pii_redacted: piiTotal,
     },
   });
 
@@ -387,5 +389,6 @@ Deno.serve(async (req) => {
     },
     output,
     truncated,
+    pii: { redacted: piiTotal, findings },
   });
 });

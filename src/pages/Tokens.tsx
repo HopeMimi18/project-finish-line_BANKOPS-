@@ -18,8 +18,13 @@ import { toast } from "sonner";
 import { Copy, KeyRound, Ban, Loader2 } from "lucide-react";
 import { generateTokenString, logAudit, timeRemaining } from "@/lib/bankops";
 
-type Permission = "summarize" | "keywords" | "classify";
-const PERMS: Permission[] = ["summarize", "keywords", "classify"];
+type Permission = "summarize" | "keywords" | "classify" | "pii_override";
+const PERMS: { value: Permission; hint?: string; privileged?: boolean }[] = [
+  { value: "summarize" },
+  { value: "keywords" },
+  { value: "classify" },
+  { value: "pii_override", hint: "Bypass SA-ID/card AI block", privileged: true },
+];
 
 const Tokens = () => {
   const { user } = useAuth();

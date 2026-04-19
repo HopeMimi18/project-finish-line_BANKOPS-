@@ -147,7 +147,12 @@ const Upload = () => {
     await logAudit({
       action: "document.upload",
       resourceCid: cid,
-      meta: { filename: nameParsed.data, classification: tag, size: file.size },
+      meta: {
+        filename: nameParsed.data,
+        classification: tag,
+        size: file.size,
+        client_id: clientId === NO_CLIENT ? null : clientId,
+      },
     });
     reset();
     qc.invalidateQueries({ queryKey: ["documents"] });

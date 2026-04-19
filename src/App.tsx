@@ -13,6 +13,7 @@ import Tokens from "./pages/Tokens";
 import Assist from "./pages/Assist";
 import Audit from "./pages/Audit";
 import Admin from "./pages/Admin";
+import Clients from "./pages/Clients";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

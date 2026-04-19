@@ -130,6 +130,7 @@ const Upload = () => {
       classification: tag,
       storage_path: storagePath,
       owner_id: user.id,
+      client_id: clientId === NO_CLIENT ? null : clientId,
     });
 
     if (insErr) {

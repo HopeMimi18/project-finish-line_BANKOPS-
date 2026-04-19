@@ -16,11 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Trash2, FileLock2, Copy } from "lucide-react";
+import { Loader2, Trash2, FileLock2, Copy, Download } from "lucide-react";
 import { generateCid, formatBytes, logAudit } from "@/lib/bankops";
+import { DownloadJustificationDialog } from "@/components/DownloadJustificationDialog";
 
 type Tag = "support" | "ops" | "compliance";
 const TAGS: Tag[] = ["support", "ops", "compliance"];
+
+const NO_CLIENT = "__none__";
 
 const filenameSchema = z
   .string()

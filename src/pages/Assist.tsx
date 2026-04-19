@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Loader2, FileText, Tags, ShieldCheck } from "lucide-react";
+import { Sparkles, Loader2, FileText, Tags, ShieldCheck, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 type Task = "summarize" | "keywords" | "classify";
@@ -15,11 +15,13 @@ const TASKS: { value: Task; label: string; icon: any; hint: string }[] = [
   { value: "classify", label: "Classify", icon: ShieldCheck, hint: "support / ops / compliance" },
 ];
 
+interface PiiFinding { type: string; count: number }
 interface AssistResult {
   task: Task;
   document: { cid: string; filename: string; classification: string };
   output: string;
   truncated: boolean;
+  pii?: { redacted: number; findings: PiiFinding[] };
 }
 
 const Assist = () => {
@@ -41,14 +43,22 @@ const Assist = () => {
       });
       if (error) {
         // Try to surface the JSON error from the function response
-        const msg = (error as any)?.context?.body
-          ? await (error as any).context.text?.()
-          : null;
-        throw new Error(msg || error.message || "AI request failed");
+        const ctx = (error as any)?.context;
+        let parsed: any = null;
+        try {
+          const txt = await ctx?.text?.();
+          parsed = txt ? JSON.parse(txt) : null;
+        } catch { /* noop */ }
+        if (parsed?.findings) {
+          const summary = parsed.findings.map((f: PiiFinding) => `${f.count}× ${f.type}`).join(", ");
+          throw new Error(`${parsed.error} Detected: ${summary}`);
+        }
+        throw new Error(parsed?.error || error.message || "AI request failed");
       }
       if ((data as any)?.error) throw new Error((data as any).error);
       setResult(data as AssistResult);
-      toast.success("AI Assist completed");
+      const piiCount = (data as any)?.pii?.redacted ?? 0;
+      toast.success(piiCount > 0 ? `AI Assist completed · ${piiCount} PII item(s) redacted` : "AI Assist completed");
     } catch (e: any) {
       toast.error(e.message ?? "AI Assist failed");
     } finally {
@@ -161,6 +171,23 @@ const Assist = () => {
                   </span>
                 )}
               </div>
+              {result.pii && result.pii.redacted > 0 && (
+                <div className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-xs">
+                  <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+                  <div className="space-y-1">
+                    <div className="font-medium text-warning">
+                      {result.pii.redacted} sensitive item(s) redacted before AI call
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 text-muted-foreground">
+                      {result.pii.findings.map((f) => (
+                        <span key={f.type} className="mono rounded bg-background/60 px-1.5 py-0.5">
+                          {f.count}× {f.type}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
               <pre className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground">
                 {result.output || "(empty response)"}
               </pre>

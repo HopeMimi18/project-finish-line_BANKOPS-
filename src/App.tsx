@@ -10,8 +10,9 @@ import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Upload from "./pages/Upload";
 import Tokens from "./pages/Tokens";
+import Assist from "./pages/Assist";
 import Audit from "./pages/Audit";
-import Placeholder from "./pages/Placeholder";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,26 +44,13 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/tokens" element={<Tokens />} />
-              <Route
-                path="/assist"
-                element={
-                  <Placeholder
-                    title="AI Assist"
-                    description="Run summarize / keywords / classify on a document, gated by a token."
-                    step="Step 3"
-                  />
-                }
-              />
+              <Route path="/assist" element={<Assist />} />
               <Route path="/audit" element={<Audit />} />
               <Route
                 path="/admin"
                 element={
                   <ManagerOnly>
-                    <Placeholder
-                      title="Admin & Access"
-                      description="Manage user roles and access classifications."
-                      step="Step 3"
-                    />
+                    <Admin />
                   </ManagerOnly>
                 }
               />

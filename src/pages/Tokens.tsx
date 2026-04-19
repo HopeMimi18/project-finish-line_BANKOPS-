@@ -27,7 +27,7 @@ const PERMS: { value: Permission; hint?: string; privileged?: boolean }[] = [
 ];
 
 const Tokens = () => {
-  const { user } = useAuth();
+  const { user, isManagerOrAdmin } = useAuth();
   const qc = useQueryClient();
 
   const [docId, setDocId] = useState<string>("");

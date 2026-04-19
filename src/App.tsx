@@ -55,6 +55,14 @@ const App = () => (
                   </ManagerOnly>
                 }
               />
+              <Route
+                path="/clients"
+                element={
+                  <ManagerOnly>
+                    <Clients />
+                  </ManagerOnly>
+                }
+              />
             </Route>
 
             <Route path="*" element={<NotFound />} />

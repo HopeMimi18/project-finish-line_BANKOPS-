@@ -156,7 +156,8 @@ const Admin = () => {
           </div>
         }
       />
-      <div className="p-6">
+      <div className="space-y-6 p-6">
+        <AnomalyAlerts />
         <div className="surface-card overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">

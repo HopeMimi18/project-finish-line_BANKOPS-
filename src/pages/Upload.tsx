@@ -59,10 +59,17 @@ const Upload = () => {
       setPreview("");
       return;
     }
+    const isText =
+      file.type.startsWith("text/") ||
+      /\.(txt|md|csv|json|log)$/i.test(file.name);
+    if (!isText) {
+      setPreview("(binary file — no preview; text will be extracted server-side)");
+      return;
+    }
     file
       .text()
       .then((t) => setPreview(t.slice(0, 2500)))
-      .catch(() => setPreview("(binary or unreadable preview)"));
+      .catch(() => setPreview("(unreadable preview)"));
   }, [file]);
 
   const reset = () => {
@@ -75,7 +82,7 @@ const Upload = () => {
     if (!file) return toast.error("Choose a file first");
     const nameParsed = filenameSchema.safeParse(file.name);
     if (!nameParsed.success) return toast.error(nameParsed.error.issues[0].message);
-    if (file.size > 5 * 1024 * 1024) return toast.error("Max file size is 5 MB");
+    if (file.size > 10 * 1024 * 1024) return toast.error("Max file size is 10 MB");
 
     setBusy(true);
     const cid = generateCid();
@@ -153,7 +160,7 @@ const Upload = () => {
         <div className="surface-card p-5 lg:col-span-3">
           <h2 className="text-sm font-semibold">New Upload</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            For hackathon reliability use <span className="mono">.txt</span>. Max 5 MB.
+            Accepts <span className="mono">.txt .md .csv .json .log .pdf .docx</span>. Max 10 MB.
           </p>
 
           <div className="mt-4 space-y-4">
@@ -162,7 +169,7 @@ const Upload = () => {
               <Input
                 id="file"
                 type="file"
-                accept=".txt,.md,.csv,.json,.log"
+                accept=".txt,.md,.csv,.json,.log,.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 disabled={busy}
               />

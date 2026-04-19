@@ -84,6 +84,22 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
+  // Break-glass check
+  const { data: bg } = await admin
+    .from("system_settings")
+    .select("value")
+    .eq("key", "break_glass")
+    .maybeSingle();
+  if ((bg?.value as any)?.enabled === true) {
+    await logAudit(admin, {
+      user_id: userId,
+      action: "ai.assist",
+      result: "denied",
+      meta: { reason: "break_glass_active" },
+    });
+    return json({ error: "Break-glass mode is active. AI calls are frozen." }, 423);
+  }
+
   let body: { token?: string; task?: Task };
   try {
     body = await req.json();
@@ -360,6 +376,23 @@ Deno.serve(async (req) => {
 
   const aiData = await aiResp.json();
   const output: string = aiData?.choices?.[0]?.message?.content?.trim() ?? "";
+
+  // Forensic log: full sanitized prompt + response
+  try {
+    await admin.from("ai_call_logs").insert({
+      user_id: userId,
+      document_id: doc.id,
+      task,
+      model: "google/gemini-3-flash-preview",
+      prompt_text: `Document: ${doc.filename}\nClassification: ${doc.classification}\n\n---\n${text}`,
+      response_text: output,
+      pii_findings: findings,
+      truncated,
+      status: "ok",
+    });
+  } catch (e) {
+    console.warn("ai_call_logs insert failed", e);
+  }
 
   await logAudit(admin, {
     user_id: userId,

@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { BreakGlassBanner } from "@/components/BreakGlassBanner";
 
 export const AppLayout = () => {
   return (
@@ -25,6 +26,7 @@ export const AppLayout = () => {
             </div>
           </header>
 
+          <BreakGlassBanner />
           <main className="flex-1 animate-fade-in">
             <Outlet />
           </main>

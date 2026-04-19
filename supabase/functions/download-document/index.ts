@@ -4,6 +4,7 @@
 // - Reason category + free-text required
 // - Returns a short-lived signed URL and writes a "document.download" audit event
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { PDFDocument, StandardFonts, degrees, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,6 +52,22 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
+  // Break-glass check
+  const { data: bg } = await admin
+    .from("system_settings")
+    .select("value")
+    .eq("key", "break_glass")
+    .maybeSingle();
+  if ((bg?.value as any)?.enabled === true) {
+    await admin.from("audit_events").insert({
+      user_id: userId,
+      action: "document.download",
+      result: "denied",
+      meta: { reason: "break_glass_active" },
+    });
+    return json({ error: "Break-glass mode is active. Downloads are frozen." }, 423);
+  }
+
   let body: { document_id?: string; reason_category?: string; reason_text?: string };
   try {
     body = await req.json();
@@ -84,23 +101,10 @@ Deno.serve(async (req) => {
     return json({ error: "Document not found or not accessible" }, 403);
   }
 
-  // Generate a short-lived signed URL via service role
-  const { data: signed, error: signErr } = await admin.storage
-    .from("documents")
-    .createSignedUrl(doc.storage_path, 60); // 60s
+  const isPdf =
+    (doc.filename || "").toLowerCase().endsWith(".pdf");
 
-  if (signErr || !signed?.signedUrl) {
-    await admin.from("audit_events").insert({
-      user_id: userId,
-      action: "document.download",
-      document_id: doc.id,
-      resource_cid: doc.cid,
-      result: "error",
-      meta: { reason: "signing_failed", reason_category: cat },
-    });
-    return json({ error: "Could not prepare download" }, 500);
-  }
-
+  // Audit success now (so even if watermarking fails after, we have the trail)
   await admin.from("audit_events").insert({
     user_id: userId,
     action: "document.download",
@@ -114,12 +118,75 @@ Deno.serve(async (req) => {
       classification: doc.classification,
       client_id: doc.client_id,
       size_bytes: doc.size_bytes,
+      watermarked: isPdf,
     },
   });
 
+  // For PDFs: download, watermark with traceable user/timestamp/reason, return as base64.
+  if (isPdf) {
+    try {
+      const { data: file, error: dlErr } = await admin.storage
+        .from("documents")
+        .download(doc.storage_path);
+      if (dlErr || !file) throw new Error(dlErr?.message ?? "download failed");
+
+      const buf = new Uint8Array(await file.arrayBuffer());
+      const pdf = await PDFDocument.load(buf, { ignoreEncryption: true });
+      const font = await pdf.embedFont(StandardFonts.Helvetica);
+      const stamp = `BANKOPS · ${userId.slice(0, 8)} · ${new Date().toISOString()} · ${cat}`;
+      const pages = pdf.getPages();
+      for (const page of pages) {
+        const { width, height } = page.getSize();
+        // Diagonal watermark across each page (low opacity)
+        page.drawText(stamp, {
+          x: width / 2 - 220,
+          y: height / 2,
+          size: 14,
+          font,
+          color: rgb(0.55, 0.55, 0.6),
+          rotate: degrees(35),
+          opacity: 0.18,
+        });
+        // Footer trace
+        page.drawText(stamp, {
+          x: 24,
+          y: 14,
+          size: 7,
+          font,
+          color: rgb(0.4, 0.4, 0.45),
+          opacity: 0.6,
+        });
+      }
+      const out = await pdf.save();
+      // base64 encode
+      let bin = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < out.length; i += chunk) {
+        bin += String.fromCharCode(...out.subarray(i, i + chunk));
+      }
+      const b64 = btoa(bin);
+      return json({
+        filename: doc.filename,
+        watermarked: true,
+        content_b64: b64,
+        content_type: "application/pdf",
+      });
+    } catch (e) {
+      console.warn("watermark failed, falling back to signed url", e);
+    }
+  }
+
+  // Non-PDF (or watermark failure): short-lived signed URL
+  const { data: signed, error: signErr } = await admin.storage
+    .from("documents")
+    .createSignedUrl(doc.storage_path, 60);
+  if (signErr || !signed?.signedUrl) {
+    return json({ error: "Could not prepare download" }, 500);
+  }
   return json({
     url: signed.signedUrl,
     filename: doc.filename,
     expires_in: 60,
+    watermarked: false,
   });
 });

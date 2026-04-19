@@ -23,6 +23,7 @@ import {
 import { Loader2, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/bankops";
+import { AnomalyAlerts } from "@/components/AnomalyAlerts";
 
 const ROLES: AppRole[] = ["support", "ops", "compliance", "manager", "admin"];
 

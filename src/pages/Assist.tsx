@@ -43,14 +43,22 @@ const Assist = () => {
       });
       if (error) {
         // Try to surface the JSON error from the function response
-        const msg = (error as any)?.context?.body
-          ? await (error as any).context.text?.()
-          : null;
-        throw new Error(msg || error.message || "AI request failed");
+        const ctx = (error as any)?.context;
+        let parsed: any = null;
+        try {
+          const txt = await ctx?.text?.();
+          parsed = txt ? JSON.parse(txt) : null;
+        } catch { /* noop */ }
+        if (parsed?.findings) {
+          const summary = parsed.findings.map((f: PiiFinding) => `${f.count}× ${f.type}`).join(", ");
+          throw new Error(`${parsed.error} Detected: ${summary}`);
+        }
+        throw new Error(parsed?.error || error.message || "AI request failed");
       }
       if ((data as any)?.error) throw new Error((data as any).error);
       setResult(data as AssistResult);
-      toast.success("AI Assist completed");
+      const piiCount = (data as any)?.pii?.redacted ?? 0;
+      toast.success(piiCount > 0 ? `AI Assist completed · ${piiCount} PII item(s) redacted` : "AI Assist completed");
     } catch (e: any) {
       toast.error(e.message ?? "AI Assist failed");
     } finally {

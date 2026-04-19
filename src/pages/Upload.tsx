@@ -43,15 +43,29 @@ const Upload = () => {
   const [tag, setTag] = useState<Tag>(
     (roles.find((r) => TAGS.includes(r as Tag)) as Tag) ?? "ops"
   );
+  const [clientId, setClientId] = useState<string>(NO_CLIENT);
   const [busy, setBusy] = useState(false);
+  const [downloadFor, setDownloadFor] = useState<{ id: string; name: string } | null>(null);
 
   const docs = useQuery({
     queryKey: ["documents"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("documents")
-        .select("*")
+        .select("*, clients(code, name)")
         .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const clients = useQuery({
+    queryKey: ["clients"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("id, code, name")
+        .order("code");
       if (error) throw error;
       return data ?? [];
     },

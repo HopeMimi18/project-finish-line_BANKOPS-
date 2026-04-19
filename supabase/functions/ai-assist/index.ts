@@ -232,6 +232,88 @@ Deno.serve(async (req) => {
   const truncated = text.length > MAX_CHARS;
   if (truncated) text = text.slice(0, MAX_CHARS);
 
+  // ---- PII / sensitive-data pre-scan ----
+  // Detects SA ID numbers, account numbers, card numbers (Luhn-validated),
+  // SWIFT/BIC codes, and email addresses. Redacts in-place before the AI call.
+  function luhnValid(num: string): boolean {
+    let sum = 0, alt = false;
+    for (let i = num.length - 1; i >= 0; i--) {
+      let d = parseInt(num[i], 10);
+      if (alt) { d *= 2; if (d > 9) d -= 9; }
+      sum += d; alt = !alt;
+    }
+    return sum % 10 === 0 && num.length >= 13;
+  }
+  function saIdValid(id: string): boolean {
+    if (!/^\d{13}$/.test(id)) return false;
+    const m = parseInt(id.slice(2, 4), 10);
+    const d = parseInt(id.slice(4, 6), 10);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+    return luhnValid(id);
+  }
+  const findings: { type: string; count: number }[] = [];
+  let redacted = text;
+  const tally = (type: string, n: number) => { if (n > 0) findings.push({ type, count: n }); };
+
+  // SA ID (13 digits, Luhn + date-shaped)
+  let n = 0;
+  redacted = redacted.replace(/\b\d{13}\b/g, (m) => {
+    if (saIdValid(m)) { n++; return "[REDACTED_SA_ID]"; }
+    return m;
+  });
+  tally("sa_id", n);
+
+  // Card numbers (13–19 digits, optional spaces/dashes, Luhn-validated)
+  n = 0;
+  redacted = redacted.replace(/\b(?:\d[ -]?){12,18}\d\b/g, (m) => {
+    const digits = m.replace(/[ -]/g, "");
+    if (digits.length >= 13 && digits.length <= 19 && luhnValid(digits)) {
+      n++; return "[REDACTED_CARD]";
+    }
+    return m;
+  });
+  tally("card", n);
+
+  // SA bank account numbers (9–11 digits, standalone)
+  n = 0;
+  redacted = redacted.replace(/\b\d{9,11}\b/g, (m) => { n++; return "[REDACTED_ACCOUNT]"; });
+  tally("account", n);
+
+  // SWIFT/BIC (8 or 11 chars: 6 letters + 2 alnum + optional 3 alnum)
+  n = 0;
+  redacted = redacted.replace(/\b[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?\b/g, (m) => {
+    n++; return "[REDACTED_SWIFT]";
+  });
+  tally("swift", n);
+
+  // Emails
+  n = 0;
+  redacted = redacted.replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, (m) => {
+    n++; return "[REDACTED_EMAIL]";
+  });
+  tally("email", n);
+
+  const piiTotal = findings.reduce((a, b) => a + b.count, 0);
+  // Block if Restricted-class signal present (SA ID or card) and token doesn't carry an explicit override permission.
+  const hasHighRisk = findings.some((f) => (f.type === "sa_id" || f.type === "card") && f.count > 0);
+  const allowPii = tokenRow.permissions?.includes("pii_override");
+  if (hasHighRisk && !allowPii) {
+    await logAudit(admin, {
+      user_id: userId,
+      action: "ai.assist",
+      document_id: doc.id,
+      resource_cid: doc.cid,
+      result: "denied",
+      meta: { reason: "pii_blocked", task, findings, token_id: tokenRow.id },
+    });
+    return json({
+      error: "Sensitive data detected (SA ID or card number). AI call blocked by policy.",
+      findings,
+    }, 422);
+  }
+  text = redacted;
+  // ---- end PII pre-scan ----
+
   if (!LOVABLE_API_KEY) return json({ error: "AI not configured" }, 500);
 
   const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

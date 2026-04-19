@@ -23,6 +23,7 @@ import {
 import { Loader2, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/bankops";
+import { AnomalyAlerts } from "@/components/AnomalyAlerts";
 
 const ROLES: AppRole[] = ["support", "ops", "compliance", "manager", "admin"];
 
@@ -155,7 +156,8 @@ const Admin = () => {
           </div>
         }
       />
-      <div className="p-6">
+      <div className="space-y-6 p-6">
+        <AnomalyAlerts />
         <div className="surface-card overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">

@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { FileLock2, KeyRound, Sparkles, ShieldCheck } from "lucide-react";
 
 const Kpi = ({
@@ -32,6 +34,41 @@ const Kpi = ({
 const Dashboard = () => {
   const { user, roles } = useAuth();
 
+  const stats = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: async () => {
+      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const nowIso = new Date().toISOString();
+      const [docsRes, tokensRes, aiRes, auditRes] = await Promise.all([
+        supabase.from("documents").select("*", { count: "exact", head: true }),
+        supabase
+          .from("tokens")
+          .select("*", { count: "exact", head: true })
+          .eq("revoked", false)
+          .gt("expires_at", nowIso),
+        supabase
+          .from("audit_events")
+          .select("*", { count: "exact", head: true })
+          .eq("action", "ai.assist")
+          .gte("created_at", dayAgo),
+        supabase
+          .from("audit_events")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", dayAgo),
+      ]);
+      return {
+        docs: docsRes.count ?? 0,
+        tokens: tokensRes.count ?? 0,
+        ai: aiRes.count ?? 0,
+        audit: auditRes.count ?? 0,
+      };
+    },
+    refetchInterval: 30_000,
+  });
+
+  const fmt = (n: number | undefined) =>
+    stats.isLoading || n === undefined ? "—" : n.toLocaleString();
+
   return (
     <div>
       <PageHeader
@@ -41,31 +78,55 @@ const Dashboard = () => {
 
       <div className="space-y-6 px-6 py-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi label="Encrypted Docs" value="—" icon={FileLock2} hint="No documents stored yet" />
-          <Kpi label="Active Tokens" value="—" icon={KeyRound} hint="Issue scoped, time-bound tokens" />
-          <Kpi label="AI Requests" value="—" icon={Sparkles} hint="Local, permissioned inference" />
-          <Kpi label="Audit Events" value="—" icon={ShieldCheck} hint="Append-only, metadata only" />
+          <Kpi
+            label="Encrypted Docs"
+            value={fmt(stats.data?.docs)}
+            icon={FileLock2}
+            hint="Visible to you under current roles"
+          />
+          <Kpi
+            label="Active Tokens"
+            value={fmt(stats.data?.tokens)}
+            icon={KeyRound}
+            hint="Not revoked and not expired"
+          />
+          <Kpi
+            label="AI Requests · 24h"
+            value={fmt(stats.data?.ai)}
+            icon={Sparkles}
+            hint="Token-gated assist calls"
+          />
+          <Kpi
+            label="Audit Events · 24h"
+            value={fmt(stats.data?.audit)}
+            icon={ShieldCheck}
+            hint="Append-only, metadata only"
+          />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="surface-card p-5 lg:col-span-2">
-            <h2 className="text-sm font-semibold">What this system demonstrates</h2>
+            <h2 className="text-sm font-semibold">Governance controls in this workspace</h2>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                <span><span className="text-foreground font-medium">Encrypted storage</span> — no plaintext at rest, scoped per role.</span>
+                <span><span className="text-foreground font-medium">Encrypted storage</span> with role-based and client-level segmentation.</span>
               </li>
               <li className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                <span><span className="text-foreground font-medium">Ephemeral access</span> — time-bound, scoped permissions for AI tasks.</span>
+                <span><span className="text-foreground font-medium">Ephemeral, scoped tokens</span> for AI tasks — never share an unbounded API key.</span>
               </li>
               <li className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                <span><span className="text-foreground font-medium">Permissioned inference</span> — every AI call is gated by a valid token.</span>
+                <span><span className="text-foreground font-medium">PII pre-scan</span> — SA IDs, card numbers, accounts, SWIFT, emails are detected and redacted before AI.</span>
               </li>
               <li className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                <span><span className="text-foreground font-medium">Auditability</span> — metadata-only trail for compliance and governance.</span>
+                <span><span className="text-foreground font-medium">Justification-required downloads</span> with full reason logged for every export.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span><span className="text-foreground font-medium">Insider-risk alerts</span> on bulk downloads, off-hours access, and denial bursts.</span>
               </li>
             </ul>
           </div>

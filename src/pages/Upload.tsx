@@ -16,11 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Trash2, FileLock2, Copy } from "lucide-react";
+import { Loader2, Trash2, FileLock2, Copy, Download } from "lucide-react";
 import { generateCid, formatBytes, logAudit } from "@/lib/bankops";
+import { DownloadJustificationDialog } from "@/components/DownloadJustificationDialog";
 
 type Tag = "support" | "ops" | "compliance";
 const TAGS: Tag[] = ["support", "ops", "compliance"];
+
+const NO_CLIENT = "__none__";
 
 const filenameSchema = z
   .string()
@@ -40,15 +43,29 @@ const Upload = () => {
   const [tag, setTag] = useState<Tag>(
     (roles.find((r) => TAGS.includes(r as Tag)) as Tag) ?? "ops"
   );
+  const [clientId, setClientId] = useState<string>(NO_CLIENT);
   const [busy, setBusy] = useState(false);
+  const [downloadFor, setDownloadFor] = useState<{ id: string; name: string } | null>(null);
 
   const docs = useQuery({
     queryKey: ["documents"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("documents")
-        .select("*")
+        .select("*, clients(code, name)")
         .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const clients = useQuery({
+    queryKey: ["clients"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("id, code, name")
+        .order("code");
       if (error) throw error;
       return data ?? [];
     },
@@ -113,6 +130,7 @@ const Upload = () => {
       classification: tag,
       storage_path: storagePath,
       owner_id: user.id,
+      client_id: clientId === NO_CLIENT ? null : clientId,
     });
 
     if (insErr) {
@@ -129,7 +147,12 @@ const Upload = () => {
     await logAudit({
       action: "document.upload",
       resourceCid: cid,
-      meta: { filename: nameParsed.data, classification: tag, size: file.size },
+      meta: {
+        filename: nameParsed.data,
+        classification: tag,
+        size: file.size,
+        client_id: clientId === NO_CLIENT ? null : clientId,
+      },
     });
     reset();
     qc.invalidateQueries({ queryKey: ["documents"] });
@@ -199,6 +222,27 @@ const Upload = () => {
               </p>
             </div>
 
+            <div className="space-y-1.5">
+              <Label htmlFor="client">Client (optional)</Label>
+              <Select value={clientId} onValueChange={setClientId} disabled={busy}>
+                <SelectTrigger id="client">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_CLIENT}>— No client —</SelectItem>
+                  {clients.data?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <span className="mono mr-2">{c.code}</span>
+                      <span className="text-muted-foreground">{c.name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                If set, only users <strong>assigned to this client</strong> (plus managers/admins) can view this document — even within the same classification.
+              </p>
+            </div>
+
             {preview && (
               <div className="space-y-1.5">
                 <Label>Preview (first 2.5 KB)</Label>
@@ -253,6 +297,11 @@ const Upload = () => {
                         <span className="badge-dot bg-secondary text-secondary-foreground capitalize">
                           {d.classification}
                         </span>
+                        {d.clients && (
+                          <span className="badge-dot bg-primary/15 text-primary mono">
+                            {d.clients.code}
+                          </span>
+                        )}
                         <span className="mono text-[10px] text-muted-foreground">
                           {formatBytes(d.size_bytes)}
                         </span>
@@ -269,16 +318,26 @@ const Upload = () => {
                         <Copy className="h-3 w-3" />
                       </button>
                     </div>
-                    {canDelete && (
+                    <div className="flex flex-col gap-1">
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => handleDelete(d.id, d.cid, d.storage_path)}
-                        title="Delete"
+                        onClick={() => setDownloadFor({ id: d.id, name: d.filename })}
+                        title="Download (requires justification)"
                       >
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        <Download className="h-3.5 w-3.5 text-primary" />
                       </Button>
-                    )}
+                      {canDelete && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleDelete(d.id, d.cid, d.storage_path)}
+                          title="Delete"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -286,6 +345,13 @@ const Upload = () => {
           </div>
         </div>
       </div>
+
+      <DownloadJustificationDialog
+        open={!!downloadFor}
+        onOpenChange={(v) => !v && setDownloadFor(null)}
+        documentId={downloadFor?.id ?? null}
+        filename={downloadFor?.name ?? ""}
+      />
     </div>
   );
 };

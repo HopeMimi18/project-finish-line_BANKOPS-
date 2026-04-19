@@ -55,10 +55,64 @@ export type Database = {
           },
         ]
       }
+      client_assignments: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           cid: string
           classification: Database["public"]["Enums"]["classification_tag"]
+          client_id: string | null
           content_type: string
           created_at: string
           filename: string
@@ -71,6 +125,7 @@ export type Database = {
         Insert: {
           cid: string
           classification: Database["public"]["Enums"]["classification_tag"]
+          client_id?: string | null
           content_type?: string
           created_at?: string
           filename: string
@@ -83,6 +138,7 @@ export type Database = {
         Update: {
           cid?: string
           classification?: Database["public"]["Enums"]["classification_tag"]
+          client_id?: string | null
           content_type?: string
           created_at?: string
           filename?: string
@@ -92,7 +148,15 @@ export type Database = {
           storage_path?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -198,9 +262,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_assigned_to_client: {
+        Args: { _client_id: string; _user_id: string }
+        Returns: boolean
+      }
       user_can_view_doc: {
         Args: {
           _classification: Database["public"]["Enums"]["classification_tag"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      user_can_view_doc_v2: {
+        Args: {
+          _classification: Database["public"]["Enums"]["classification_tag"]
+          _client_id: string
           _user_id: string
         }
         Returns: boolean

@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   Users,
   Landmark,
+  Building2,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -94,6 +95,14 @@ export function AppSidebar() {
                     <NavLink to="/admin" className={() => linkClass(isActive("/admin"))}>
                       <Users className="h-4 w-4 shrink-0" />
                       {!collapsed && <span>Admin & Access</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/clients" className={() => linkClass(isActive("/clients"))}>
+                      <Building2 className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>Clients</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

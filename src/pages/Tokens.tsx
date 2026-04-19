@@ -75,6 +75,13 @@ const Tokens = () => {
     if (!docId) return toast.error("Pick a document");
     if (perms.length === 0) return toast.error("Select at least one permission");
 
+    // Break-glass guard
+    const { data: bg } = await supabase
+      .from("system_settings").select("value").eq("key", "break_glass").maybeSingle();
+    if ((bg?.value as any)?.enabled) {
+      return toast.error("Break-glass mode active — token issuance is frozen.");
+    }
+
     setBusy(true);
     const doc = docs.data?.find((d) => d.id === docId);
     if (!doc) {

@@ -297,6 +297,11 @@ const Upload = () => {
                         <span className="badge-dot bg-secondary text-secondary-foreground capitalize">
                           {d.classification}
                         </span>
+                        {d.clients && (
+                          <span className="badge-dot bg-primary/15 text-primary mono">
+                            {d.clients.code}
+                          </span>
+                        )}
                         <span className="mono text-[10px] text-muted-foreground">
                           {formatBytes(d.size_bytes)}
                         </span>
@@ -313,16 +318,26 @@ const Upload = () => {
                         <Copy className="h-3 w-3" />
                       </button>
                     </div>
-                    {canDelete && (
+                    <div className="flex flex-col gap-1">
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => handleDelete(d.id, d.cid, d.storage_path)}
-                        title="Delete"
+                        onClick={() => setDownloadFor({ id: d.id, name: d.filename })}
+                        title="Download (requires justification)"
                       >
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        <Download className="h-3.5 w-3.5 text-primary" />
                       </Button>
-                    )}
+                      {canDelete && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleDelete(d.id, d.cid, d.storage_path)}
+                          title="Delete"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

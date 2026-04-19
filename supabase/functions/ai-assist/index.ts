@@ -288,6 +288,7 @@ Deno.serve(async (req) => {
     meta: {
       task,
       token_id: tokenRow.id,
+      extractor,
       truncated,
       input_chars: text.length,
       output_chars: output.length,

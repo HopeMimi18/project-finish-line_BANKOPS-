@@ -51,6 +51,22 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
+  // Break-glass check
+  const { data: bg } = await admin
+    .from("system_settings")
+    .select("value")
+    .eq("key", "break_glass")
+    .maybeSingle();
+  if ((bg?.value as any)?.enabled === true) {
+    await admin.from("audit_events").insert({
+      user_id: userId,
+      action: "document.download",
+      result: "denied",
+      meta: { reason: "break_glass_active" },
+    });
+    return json({ error: "Break-glass mode is active. Downloads are frozen." }, 423);
+  }
+
   let body: { document_id?: string; reason_category?: string; reason_text?: string };
   try {
     body = await req.json();

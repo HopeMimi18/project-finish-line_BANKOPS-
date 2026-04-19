@@ -1,6 +1,9 @@
 // AI Assist edge function — token-validated, calls Lovable AI
 // Tasks: summarize | keywords | classify
+// Supports text/* + PDF + DOCX (server-side text extraction)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@0.12.1";
+import JSZip from "https://esm.sh/jszip@3.10.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

@@ -14,6 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_events: {
+        Row: {
+          action: string
+          created_at: string
+          document_id: string | null
+          id: string
+          meta: Json
+          resource_cid: string | null
+          result: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          meta?: Json
+          resource_cid?: string | null
+          result?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          meta?: Json
+          resource_cid?: string | null
+          result?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_events_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          cid: string
+          classification: Database["public"]["Enums"]["classification_tag"]
+          content_type: string
+          created_at: string
+          filename: string
+          id: string
+          owner_id: string
+          size_bytes: number
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          cid: string
+          classification: Database["public"]["Enums"]["classification_tag"]
+          content_type?: string
+          created_at?: string
+          filename: string
+          id?: string
+          owner_id: string
+          size_bytes?: number
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          cid?: string
+          classification?: Database["public"]["Enums"]["classification_tag"]
+          content_type?: string
+          created_at?: string
+          filename?: string
+          id?: string
+          owner_id?: string
+          size_bytes?: number
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -40,6 +120,50 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      tokens: {
+        Row: {
+          created_at: string
+          created_by: string
+          document_id: string | null
+          expires_at: string
+          id: string
+          permissions: string[]
+          revoked: boolean
+          scope_cid: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          document_id?: string | null
+          expires_at: string
+          id?: string
+          permissions?: string[]
+          revoked?: boolean
+          scope_cid: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          document_id?: string | null
+          expires_at?: string
+          id?: string
+          permissions?: string[]
+          revoked?: boolean
+          scope_cid?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tokens_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -74,9 +198,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_can_view_doc: {
+        Args: {
+          _classification: Database["public"]["Enums"]["classification_tag"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "support" | "ops" | "compliance" | "manager" | "admin"
+      classification_tag: "support" | "ops" | "compliance"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -205,6 +337,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["support", "ops", "compliance", "manager", "admin"],
+      classification_tag: ["support", "ops", "compliance"],
     },
   },
 } as const

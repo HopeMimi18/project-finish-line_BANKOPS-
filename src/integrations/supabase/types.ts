@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_call_logs: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          id: string
+          model: string | null
+          pii_findings: Json | null
+          prompt_text: string
+          response_text: string | null
+          status: string
+          task: string
+          truncated: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          model?: string | null
+          pii_findings?: Json | null
+          prompt_text: string
+          response_text?: string | null
+          status?: string
+          task: string
+          truncated?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          model?: string | null
+          pii_findings?: Json | null
+          prompt_text?: string
+          response_text?: string | null
+          status?: string
+          task?: string
+          truncated?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_call_logs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           action: string
@@ -182,6 +232,27 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
         }
         Relationships: []
       }

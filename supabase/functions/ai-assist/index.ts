@@ -171,7 +171,62 @@ Deno.serve(async (req) => {
     return json({ error: "Failed to read document" }, 500);
   }
 
-  let text = await file.text();
+  // Extract text by format
+  let text = "";
+  let extractor: "text" | "pdf" | "docx" = "text";
+  try {
+    const name = (doc.filename || "").toLowerCase();
+    const ct = (doc.content_type || "").toLowerCase();
+    if (ct === "application/pdf" || name.endsWith(".pdf")) {
+      extractor = "pdf";
+      const buf = new Uint8Array(await file.arrayBuffer());
+      const pdf = await getDocumentProxy(buf);
+      const { text: pages } = await extractText(pdf, { mergePages: true });
+      text = Array.isArray(pages) ? pages.join("\n") : String(pages ?? "");
+    } else if (
+      ct === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      name.endsWith(".docx")
+    ) {
+      extractor = "docx";
+      const buf = await file.arrayBuffer();
+      const zip = await JSZip.loadAsync(buf);
+      const docXml = await zip.file("word/document.xml")?.async("string");
+      if (!docXml) throw new Error("DOCX missing word/document.xml");
+      // Convert paragraph/break tags to newlines, strip remaining XML
+      text = docXml
+        .replace(/<w:p[^>]*\/>/g, "\n")
+        .replace(/<\/w:p>/g, "\n")
+        .replace(/<w:br[^>]*\/>/g, "\n")
+        .replace(/<w:tab[^>]*\/>/g, "\t")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#x?[0-9a-fA-F]+;/g, "")
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    } else {
+      text = await file.text();
+    }
+  } catch (e) {
+    console.error("extract failed", extractor, e);
+    await logAudit(admin, {
+      user_id: userId,
+      action: "ai.assist",
+      document_id: doc.id,
+      resource_cid: doc.cid,
+      result: "error",
+      meta: { reason: "extract_failed", extractor, task },
+    });
+    return json({ error: `Failed to extract text from ${extractor.toUpperCase()}` }, 422);
+  }
+
+  if (!text.trim()) {
+    return json({ error: "Document contains no extractable text" }, 422);
+  }
+
   // Cap input to keep latency/cost predictable
   const MAX_CHARS = 12000;
   const truncated = text.length > MAX_CHARS;

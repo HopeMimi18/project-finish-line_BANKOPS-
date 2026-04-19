@@ -20,11 +20,25 @@ const Audit = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("audit_events")
-        .select("*, profiles:user_id(username, display_name)")
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
-      return data ?? [];
+      const rows = data ?? [];
+      const userIds = Array.from(
+        new Set(rows.map((r) => r.user_id).filter((x): x is string => !!x))
+      );
+      const usernames: Record<string, string> = {};
+      if (userIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("user_id, username")
+          .in("user_id", userIds);
+        for (const p of profs ?? []) {
+          if (p.user_id) usernames[p.user_id] = p.username ?? "";
+        }
+      }
+      return rows.map((r) => ({ ...r, _username: r.user_id ? usernames[r.user_id] : null }));
     },
   });
 

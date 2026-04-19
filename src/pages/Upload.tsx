@@ -345,6 +345,13 @@ const Upload = () => {
           </div>
         </div>
       </div>
+
+      <DownloadJustificationDialog
+        open={!!downloadFor}
+        onOpenChange={(v) => !v && setDownloadFor(null)}
+        documentId={downloadFor?.id ?? null}
+        filename={downloadFor?.name ?? ""}
+      />
     </div>
   );
 };

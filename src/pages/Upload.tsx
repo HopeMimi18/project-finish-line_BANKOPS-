@@ -242,6 +242,8 @@ const Upload = () => {
                 If set, only users <strong>assigned to this client</strong> (plus managers/admins) can view this document — even within the same classification.
               </p>
             </div>
+
+            {preview && (
               <div className="space-y-1.5">
                 <Label>Preview (first 2.5 KB)</Label>
                 <Textarea readOnly value={preview} className="mono h-40 text-xs" />

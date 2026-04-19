@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Loader2, FileText, Tags, ShieldCheck } from "lucide-react";
+import { Sparkles, Loader2, FileText, Tags, ShieldCheck, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 type Task = "summarize" | "keywords" | "classify";
@@ -15,11 +15,13 @@ const TASKS: { value: Task; label: string; icon: any; hint: string }[] = [
   { value: "classify", label: "Classify", icon: ShieldCheck, hint: "support / ops / compliance" },
 ];
 
+interface PiiFinding { type: string; count: number }
 interface AssistResult {
   task: Task;
   document: { cid: string; filename: string; classification: string };
   output: string;
   truncated: boolean;
+  pii?: { redacted: number; findings: PiiFinding[] };
 }
 
 const Assist = () => {

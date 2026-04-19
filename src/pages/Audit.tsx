@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Download, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { AiCallLogs } from "@/components/AiCallLogs";
 
 const resultColor = (r: string) => {
   if (r === "ok") return "bg-success/15 text-success border border-success/30";
@@ -88,7 +89,8 @@ const Audit = () => {
         }
       />
 
-      <div className="px-6 py-6">
+      <div className="px-6 py-6 space-y-6">
+        {isManagerOrAdmin && <AiCallLogs />}
         <div className="surface-card overflow-hidden">
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
             <ShieldCheck className="h-4 w-4 text-primary" />

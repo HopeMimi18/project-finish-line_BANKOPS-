@@ -24,6 +24,7 @@ import { Loader2, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/bankops";
 import { AnomalyAlerts } from "@/components/AnomalyAlerts";
+import { BreakGlassToggle } from "@/components/BreakGlassToggle";
 
 const ROLES: AppRole[] = ["support", "ops", "compliance", "manager", "admin"];
 
@@ -157,6 +158,7 @@ const Admin = () => {
         }
       />
       <div className="space-y-6 p-6">
+        <BreakGlassToggle />
         <AnomalyAlerts />
         <div className="surface-card overflow-hidden">
           {loading ? (

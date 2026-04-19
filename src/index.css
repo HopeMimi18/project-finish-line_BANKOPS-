@@ -1,96 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ============================================
+   BankOps Copilot — Design System
+   Bank-grade dark UI. All colors HSL.
+   ============================================ */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Deep navy base with steel blue + warm amber accents */
+    --background: 222 39% 7%;
+    --foreground: 210 30% 92%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --surface: 222 32% 10%;
+    --surface-elevated: 222 28% 13%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --card: 222 32% 10%;
+    --card-foreground: 210 30% 92%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --popover: 222 32% 11%;
+    --popover-foreground: 210 30% 92%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Steel blue — primary brand */
+    --primary: 210 90% 58%;
+    --primary-foreground: 222 47% 6%;
+    --primary-glow: 210 95% 68%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --secondary: 222 24% 16%;
+    --secondary-foreground: 210 30% 92%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --muted: 222 22% 14%;
+    --muted-foreground: 215 16% 60%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 35 85% 58%;            /* warm amber for badges/highlights */
+    --accent-foreground: 222 47% 6%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --success: 152 60% 45%;
+    --success-foreground: 222 47% 6%;
 
-    --radius: 0.5rem;
+    --warning: 38 92% 55%;
+    --warning-foreground: 222 47% 6%;
 
-    --sidebar-background: 0 0% 98%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 210 30% 95%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --border: 222 22% 18%;
+    --input: 222 22% 16%;
+    --ring: 210 90% 58%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    --radius: 0.625rem;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Gradients */
+    --gradient-surface: linear-gradient(180deg, hsl(222 32% 11%) 0%, hsl(222 36% 8%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(210 90% 58%), hsl(210 95% 68%));
+    --gradient-radial: radial-gradient(circle at 30% 0%, hsl(210 90% 58% / 0.18), transparent 60%);
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Shadows */
+    --shadow-elevated: 0 10px 30px -12px hsl(222 60% 2% / 0.6);
+    --shadow-glow: 0 0 0 1px hsl(210 90% 58% / 0.25), 0 8px 32px -8px hsl(210 90% 58% / 0.35);
+    --shadow-inset: inset 0 1px 0 hsl(210 30% 92% / 0.04);
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar (overrides shadcn defaults to match theme) */
+    --sidebar-background: 222 36% 8%;
+    --sidebar-foreground: 210 25% 80%;
+    --sidebar-primary: 210 90% 58%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 28% 14%;
+    --sidebar-accent-foreground: 210 30% 95%;
+    --sidebar-border: 222 22% 16%;
+    --sidebar-ring: 210 90% 58%;
   }
 
+  /* App is dark-first; .dark just mirrors :root for shadcn components that probe it */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    color-scheme: dark;
   }
 }
 
@@ -99,7 +87,43 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html, body, #root {
+    @apply h-full;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    background-image: var(--gradient-radial);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    @apply tracking-tight;
+    font-weight: 600;
+  }
+
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-xl border bg-card;
+    box-shadow: var(--shadow-elevated), var(--shadow-inset);
+  }
+
+  .kpi-card {
+    @apply surface-card p-5 transition-all;
+    transition: var(--transition-base);
+  }
+  .kpi-card:hover {
+    border-color: hsl(var(--primary) / 0.4);
+  }
+
+  .badge-dot {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
 }

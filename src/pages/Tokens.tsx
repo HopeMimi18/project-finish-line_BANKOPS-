@@ -153,20 +153,35 @@ const Tokens = () => {
             <div className="space-y-2 md:col-span-2">
               <Label>Permissions</Label>
               <div className="flex flex-wrap gap-3">
-                {PERMS.map((p) => (
-                  <label
-                    key={p}
-                    className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-sm capitalize"
-                  >
-                    <Checkbox
-                      checked={perms.includes(p)}
-                      onCheckedChange={() => togglePerm(p)}
-                      disabled={busy}
-                    />
-                    {p}
-                  </label>
-                ))}
+                {PERMS.map((p) => {
+                  const disabled = busy || (p.privileged && !isManagerOrAdmin);
+                  return (
+                    <label
+                      key={p.value}
+                      className={[
+                        "flex cursor-pointer items-center gap-2 rounded-md border bg-surface px-3 py-1.5 text-sm capitalize",
+                        p.privileged
+                          ? "border-warning/40 text-warning"
+                          : "border-border",
+                        disabled ? "opacity-50 cursor-not-allowed" : "",
+                      ].join(" ")}
+                      title={p.hint || ""}
+                    >
+                      <Checkbox
+                        checked={perms.includes(p.value)}
+                        onCheckedChange={() => togglePerm(p.value)}
+                        disabled={disabled}
+                      />
+                      {p.value.replace("_", " ")}
+                    </label>
+                  );
+                })}
               </div>
+              {!isManagerOrAdmin && (
+                <p className="text-[11px] text-muted-foreground">
+                  <span className="text-warning">pii_override</span> requires manager/admin.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2 md:col-span-2">

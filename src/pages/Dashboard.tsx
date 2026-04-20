@@ -236,7 +236,7 @@ const Dashboard = () => {
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <dt className="text-muted-foreground">User</dt>
-                <dd className="mono max-w-[180px] truncate text-right">{user?.email}</dd>
+                <dd className="mono max-w-[200px] truncate text-right text-xs">{user?.email}</dd>
               </div>
               <div className="flex items-start justify-between gap-2">
                 <dt className="text-muted-foreground">Roles</dt>

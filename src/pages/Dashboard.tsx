@@ -152,20 +152,20 @@ const Dashboard = () => {
         title={`${greeting}, ${name}`}
         description="Encrypted storage, ephemeral access, and auditable AI for banking operations."
         actions={
-          <>
+          <div className="flex flex-wrap gap-2">
             <Button asChild size="sm" variant="outline">
               <Link to="/landing">
                 <Home className="mr-2 h-4 w-4" />
                 Public landing
               </Link>
             </Button>
-          <Link to="/upload">
-            <Button size="sm">
-              <UploadCloud className="mr-2 h-4 w-4" />
-              New upload
-            </Button>
-          </Link>
-          </>
+            <Link to="/upload">
+              <Button size="sm">
+                <UploadCloud className="mr-2 h-4 w-4" />
+                New upload
+              </Button>
+            </Link>
+          </div>
         }
       />
 

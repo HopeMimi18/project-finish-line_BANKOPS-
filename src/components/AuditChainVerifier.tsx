@@ -19,8 +19,11 @@ export const AuditChainVerifier = () => {
   const verify = async () => {
     setBusy(true);
     setResult(null);
-    // @ts-expect-error - rpc function exists in DB but not in generated types yet
-    const { data, error } = await supabase.rpc("verify_audit_chain");
+    const { data, error } = await (supabase.rpc as unknown as (
+      fn: string,
+    ) => Promise<{ data: unknown; error: { message: string } | null }>)(
+      "verify_audit_chain",
+    );
     setBusy(false);
     if (error) {
       toast.error(error.message);

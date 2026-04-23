@@ -15,6 +15,8 @@ import Audit from "./pages/Audit";
 import Admin from "./pages/Admin";
 import Clients from "./pages/Clients";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
+import ThreatModel from "./pages/ThreatModel";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/" element={<LandingOrApp />} />
+            <Route path="/threat-model" element={<ThreatModel />} />
             <Route path="/auth" element={<Auth />} />
 
             <Route
@@ -42,7 +46,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
-              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Index />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/tokens" element={<Tokens />} />
               <Route path="/assist" element={<Assist />} />
@@ -72,5 +76,13 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+// Public landing for signed-out visitors; redirect signed-in users straight to the app.
+const LandingOrApp = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Landing />;
+};
 
 export default App;

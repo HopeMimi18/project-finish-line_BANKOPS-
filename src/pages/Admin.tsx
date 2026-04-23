@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import { logAudit } from "@/lib/bankops";
 import { AnomalyAlerts } from "@/components/AnomalyAlerts";
 import { BreakGlassToggle } from "@/components/BreakGlassToggle";
+import { SeedDemoDataButton } from "@/components/SeedDemoDataButton";
+import { AuditChainVerifier } from "@/components/AuditChainVerifier";
 
 const ROLES: AppRole[] = ["support", "ops", "compliance", "manager", "admin"];
 
@@ -158,6 +160,10 @@ const Admin = () => {
         }
       />
       <div className="space-y-6 p-6">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SeedDemoDataButton />
+          <AuditChainVerifier />
+        </div>
         <BreakGlassToggle />
         <AnomalyAlerts />
         <div className="surface-card overflow-hidden">

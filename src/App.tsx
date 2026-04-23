@@ -17,6 +17,7 @@ import Clients from "./pages/Clients";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import ThreatModel from "./pages/ThreatModel";
+import HowItWorks from "./pages/HowItWorks";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
               }
             >
               <Route path="/dashboard" element={<Index />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/tokens" element={<Tokens />} />
               <Route path="/assist" element={<Assist />} />

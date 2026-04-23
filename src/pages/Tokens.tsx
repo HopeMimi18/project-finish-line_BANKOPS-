@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { Copy, KeyRound, Ban, Loader2 } from "lucide-react";
 import { generateTokenString, logAudit, timeRemaining } from "@/lib/bankops";
+import { RowSkeleton } from "@/components/RowSkeleton";
 
 type Permission = "summarize" | "keywords" | "classify" | "pii_override";
 const PERMS: { value: Permission; hint?: string; privileged?: boolean }[] = [
@@ -226,10 +227,13 @@ const Tokens = () => {
           </div>
 
           <div className="mt-3 space-y-2">
-            {tokens.isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
+            {tokens.isLoading && <RowSkeleton rows={4} cols={2} />}
             {tokens.data && tokens.data.length === 0 && (
-              <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                No tokens issued yet
+              <div className="rounded-md border border-dashed border-border p-6 text-center text-sm">
+                <div className="font-medium text-foreground">No tokens issued yet</div>
+                <div className="mt-1 text-muted-foreground">
+                  Pick a document on the left and grant short-lived AI permissions.
+                </div>
               </div>
             )}
             {tokens.data?.map((t) => {

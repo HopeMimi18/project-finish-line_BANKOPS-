@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Loader2, Trash2, FileLock2, Copy, Download } from "lucide-react";
 import { generateCid, formatBytes, logAudit } from "@/lib/bankops";
 import { DownloadJustificationDialog } from "@/components/DownloadJustificationDialog";
+import { RowSkeleton } from "@/components/RowSkeleton";
 
 type Tag = "support" | "ops" | "compliance";
 const TAGS: Tag[] = ["support", "ops", "compliance"];
@@ -272,12 +273,13 @@ const Upload = () => {
           </div>
 
           <div className="mt-3 space-y-2">
-            {docs.isLoading && (
-              <div className="text-sm text-muted-foreground">Loading…</div>
-            )}
+            {docs.isLoading && <RowSkeleton rows={4} cols={2} />}
             {docs.data && docs.data.length === 0 && (
-              <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                No documents yet
+              <div className="rounded-md border border-dashed border-border p-6 text-center text-sm">
+                <div className="font-medium text-foreground">No documents yet</div>
+                <div className="mt-1 text-muted-foreground">
+                  Drop a file on the left to encrypt and store it.
+                </div>
               </div>
             )}
             {docs.data?.map((d) => {

@@ -3,7 +3,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { BreakGlassBanner } from "@/components/BreakGlassBanner";
 import { DevRolePanel } from "@/components/DevRolePanel";
-import { ShieldCheck } from "lucide-react";
+import { Keyboard, ShieldCheck } from "lucide-react";
 
 const ROUTE_TITLES: Record<string, string> = {
   "/": "Overview",
@@ -46,7 +46,19 @@ export const AppLayout = () => {
                 )}
               </nav>
               <div className="flex items-center gap-3">
-                <span className="badge-dot border border-success/30 bg-success/10 text-success">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ev = new KeyboardEvent("keydown", { key: "?" });
+                    window.dispatchEvent(ev);
+                  }}
+                  className="hidden items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+                  title="Keyboard shortcuts (?)"
+                >
+                  <Keyboard className="h-3 w-3" />
+                  <kbd className="mono">?</kbd>
+                </button>
+                <span className="hidden badge-dot border border-success/30 bg-success/10 text-success sm:inline-flex">
                   <ShieldCheck className="h-3 w-3" />
                   Secure session
                 </span>

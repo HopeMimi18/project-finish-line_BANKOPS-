@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
+import { ShortcutsDialog } from "@/components/ShortcutsDialog";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Upload from "./pages/Upload";
@@ -35,6 +36,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ShortcutsDialog />
           <Routes>
             <Route path="/" element={<LandingOrApp />} />
             <Route path="/landing" element={<Landing />} />

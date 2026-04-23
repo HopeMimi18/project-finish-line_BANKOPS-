@@ -37,6 +37,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<LandingOrApp />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/threat-model" element={<ThreatModel />} />
             <Route path="/auth" element={<Auth />} />
 

@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Download, ShieldCheck } from "lucide-react";
+import { Download, FileJson, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { AiCallLogs } from "@/components/AiCallLogs";
 import { AuditChainVerifier } from "@/components/AuditChainVerifier";
+import { TableRowSkeleton } from "@/components/RowSkeleton";
 
 const resultColor = (r: string) => {
   if (r === "ok") return "bg-success/15 text-success border border-success/30";
@@ -73,6 +74,35 @@ const Audit = () => {
     toast.success("CSV exported");
   };
 
+  const exportJson = () => {
+    if (!events.data || events.data.length === 0) {
+      toast.error("Nothing to export");
+      return;
+    }
+    const payload = events.data.map((e) => ({
+      created_at: e.created_at,
+      user_id: e.user_id,
+      username: e._username,
+      action: e.action,
+      resource_cid: e.resource_cid,
+      document_id: e.document_id,
+      result: e.result,
+      meta: e.meta,
+      prev_hash: e.prev_hash,
+      row_hash: e.row_hash,
+    }));
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bankops_audit_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("JSON exported");
+  };
+
   return (
     <div>
       <PageHeader
@@ -83,10 +113,16 @@ const Audit = () => {
             : "Your metadata events. Managers and admins see all."
         }
         actions={
-          <Button size="sm" variant="outline" onClick={exportCsv}>
-            <Download className="mr-2 h-3.5 w-3.5" />
-            Export CSV
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={exportCsv}>
+              <Download className="mr-2 h-3.5 w-3.5" />
+              Export CSV
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportJson}>
+              <FileJson className="mr-2 h-3.5 w-3.5" />
+              Export JSON
+            </Button>
+          </div>
         }
       />
 
@@ -113,17 +149,14 @@ const Audit = () => {
                 </tr>
               </thead>
               <tbody>
-                {events.isLoading && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">
-                      Loading…
-                    </td>
-                  </tr>
-                )}
+                {events.isLoading && <TableRowSkeleton rows={6} cols={5} />}
                 {events.data && events.data.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                      No events yet — upload a doc or create a token to populate this log.
+                      <div className="space-y-1">
+                        <div className="font-medium text-foreground">No events yet</div>
+                        <div>Upload a doc or create a token to populate this log.</div>
+                      </div>
                     </td>
                   </tr>
                 )}

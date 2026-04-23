@@ -8,6 +8,10 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   roles: AppRole[];
+  realRoles: AppRole[];
+  impersonatedRoles: AppRole[] | null;
+  setImpersonatedRoles: (roles: AppRole[] | null) => void;
+  isImpersonating: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
   isManagerOrAdmin: boolean;
@@ -15,10 +19,29 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const IMPERSONATION_KEY = "bankops:impersonated_roles";
+
+const readImpersonation = (): AppRole[] | null => {
+  try {
+    const raw = sessionStorage.getItem(IMPERSONATION_KEY);
+    if (!raw) return null;
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return null;
+    return arr.filter((r): r is AppRole =>
+      ["support", "ops", "compliance", "manager", "admin"].includes(r),
+    );
+  } catch {
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [roles, setRoles] = useState<AppRole[]>([]);
+  const [realRoles, setRealRoles] = useState<AppRole[]>([]);
+  const [impersonatedRoles, setImpersonatedRolesState] = useState<AppRole[] | null>(
+    () => readImpersonation(),
+  );
   const [loading, setLoading] = useState(true);
 
   const loadRoles = async (userId: string) => {
@@ -28,10 +51,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .eq("user_id", userId);
     if (error) {
       console.error("loadRoles error", error);
-      setRoles([]);
+      setRealRoles([]);
       return;
     }
-    setRoles((data ?? []).map((r) => r.role as AppRole));
+    setRealRoles((data ?? []).map((r) => r.role as AppRole));
   };
 
   useEffect(() => {
@@ -43,7 +66,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // defer to avoid deadlock inside callback
         setTimeout(() => loadRoles(newSession.user.id), 0);
       } else {
-        setRoles([]);
+        setRealRoles([]);
+        setImpersonatedRolesState(null);
+        try { sessionStorage.removeItem(IMPERSONATION_KEY); } catch { /* ignore */ }
       }
     });
 
@@ -59,13 +84,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = async () => {
+    try { sessionStorage.removeItem(IMPERSONATION_KEY); } catch { /* ignore */ }
+    setImpersonatedRolesState(null);
     await supabase.auth.signOut();
   };
 
+  const setImpersonatedRoles = (next: AppRole[] | null) => {
+    setImpersonatedRolesState(next);
+    try {
+      if (next === null) sessionStorage.removeItem(IMPERSONATION_KEY);
+      else sessionStorage.setItem(IMPERSONATION_KEY, JSON.stringify(next));
+    } catch { /* ignore */ }
+  };
+
+  const roles = impersonatedRoles ?? realRoles;
+  const isImpersonating = impersonatedRoles !== null;
   const isManagerOrAdmin = roles.includes("manager") || roles.includes("admin");
 
   return (
-    <AuthContext.Provider value={{ user, session, roles, loading, signOut, isManagerOrAdmin }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        roles,
+        realRoles,
+        impersonatedRoles,
+        setImpersonatedRoles,
+        isImpersonating,
+        loading,
+        signOut,
+        isManagerOrAdmin,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -27,6 +27,7 @@ import { AnomalyAlerts } from "@/components/AnomalyAlerts";
 import { BreakGlassToggle } from "@/components/BreakGlassToggle";
 import { SeedDemoDataButton } from "@/components/SeedDemoDataButton";
 import { AuditChainVerifier } from "@/components/AuditChainVerifier";
+import { DevRolePanel } from "@/components/DevRolePanel";
 
 const ROLES: AppRole[] = ["support", "ops", "compliance", "manager", "admin"];
 
@@ -164,6 +165,7 @@ const Admin = () => {
           <SeedDemoDataButton />
           <AuditChainVerifier />
         </div>
+        <DevRolePanel variant="card" />
         <BreakGlassToggle />
         <AnomalyAlerts />
         <div className="surface-card overflow-hidden">

@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { BreakGlassBanner } from "@/components/BreakGlassBanner";
+import { DevRolePanel } from "@/components/DevRolePanel";
 import { ShieldCheck } from "lucide-react";
 
 const ROUTE_TITLES: Record<string, string> = {
@@ -64,6 +65,7 @@ export const AppLayout = () => {
             <Outlet />
           </main>
         </div>
+        <DevRolePanel variant="floating" />
       </div>
     </SidebarProvider>
   );

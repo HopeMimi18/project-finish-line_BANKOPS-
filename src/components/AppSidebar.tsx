@@ -7,6 +7,7 @@ import {
   Users,
   Landmark,
   Building2,
+  BookOpen,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -27,6 +28,7 @@ import { Button } from "@/components/ui/button";
 
 const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "How it works", url: "/how-it-works", icon: BookOpen },
   { title: "Upload & Store", url: "/upload", icon: UploadCloud },
   { title: "Tokens", url: "/tokens", icon: KeyRound },
   { title: "AI Assist", url: "/assist", icon: Sparkles },

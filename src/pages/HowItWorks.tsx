@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import {
   UploadCloud,
   KeyRound,
@@ -36,6 +37,9 @@ const HowItWorks = () => {
       />
 
       <div className="mx-auto max-w-4xl space-y-10 px-6 py-8">
+        {/* Persistent onboarding checklist */}
+        <OnboardingChecklist />
+
         {/* Quick start */}
         <section className="surface-card p-6">
           <div className="flex items-center gap-2 text-xs font-semibold text-primary">

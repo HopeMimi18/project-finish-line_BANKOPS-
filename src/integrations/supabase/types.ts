@@ -71,8 +71,10 @@ export type Database = {
           document_id: string | null
           id: string
           meta: Json
+          prev_hash: string | null
           resource_cid: string | null
           result: string
+          row_hash: string | null
           user_id: string | null
         }
         Insert: {
@@ -81,8 +83,10 @@ export type Database = {
           document_id?: string | null
           id?: string
           meta?: Json
+          prev_hash?: string | null
           resource_cid?: string | null
           result?: string
+          row_hash?: string | null
           user_id?: string | null
         }
         Update: {
@@ -91,8 +95,10 @@ export type Database = {
           document_id?: string | null
           id?: string
           meta?: Json
+          prev_hash?: string | null
           resource_cid?: string | null
           result?: string
+          row_hash?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -351,6 +357,16 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      verify_audit_chain: {
+        Args: never
+        Returns: {
+          first_break_at: string
+          first_break_id: string
+          intact: boolean
+          total_rows: number
+          verified_rows: number
+        }[]
       }
     }
     Enums: {

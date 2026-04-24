@@ -332,7 +332,50 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      tokens_safe: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          document_id: string | null
+          expires_at: string | null
+          id: string | null
+          permissions: string[] | null
+          revoked: boolean | null
+          scope_cid: string | null
+          token_preview: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          document_id?: string | null
+          expires_at?: string | null
+          id?: string | null
+          permissions?: string[] | null
+          revoked?: boolean | null
+          scope_cid?: string | null
+          token_preview?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          document_id?: string | null
+          expires_at?: string | null
+          id?: string | null
+          permissions?: string[] | null
+          revoked?: boolean | null
+          scope_cid?: string | null
+          token_preview?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tokens_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       assign_user_role: {

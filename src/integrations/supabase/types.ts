@@ -272,7 +272,8 @@ export type Database = {
           permissions: string[]
           revoked: boolean
           scope_cid: string
-          token: string
+          token_hash: string
+          token_preview: string
         }
         Insert: {
           created_at?: string
@@ -283,7 +284,8 @@ export type Database = {
           permissions?: string[]
           revoked?: boolean
           scope_cid: string
-          token: string
+          token_hash: string
+          token_preview: string
         }
         Update: {
           created_at?: string
@@ -294,7 +296,8 @@ export type Database = {
           permissions?: string[]
           revoked?: boolean
           scope_cid?: string
-          token?: string
+          token_hash?: string
+          token_preview?: string
         }
         Relationships: [
           {
@@ -332,6 +335,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _target_user: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_roles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -339,6 +360,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      remove_user_role: { Args: { _role_id: string }; Returns: undefined }
       user_assigned_to_client: {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean

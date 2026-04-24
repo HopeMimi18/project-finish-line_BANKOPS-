@@ -5,6 +5,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@0.12.1";
 import JSZip from "https://esm.sh/jszip@3.10.1";
 
+function sha256Hex(value: string): Promise<string> {
+  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)).then((buf) =>
+    Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("")
+  );
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -113,11 +119,13 @@ Deno.serve(async (req) => {
     return json({ error: "Missing token or invalid task" }, 400);
   }
 
+  const tokenHash = await sha256Hex(token);
+
   // Validate token
   const { data: tokenRow, error: tokenErr } = await admin
     .from("tokens")
     .select("id, document_id, scope_cid, permissions, expires_at, revoked, created_by")
-    .eq("token", token)
+    .eq("token_hash", tokenHash)
     .maybeSingle();
 
   if (tokenErr || !tokenRow) {

@@ -274,11 +274,7 @@ const Tokens = () => {
                         )}
                       </div>
                       <button
-                        disabled={!isActive}
-                        className="mt-1.5 mono inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground"
-                        onClick={() => {
-                          toast.info("Tokens are only shown once when created.");
-                        }}
+                        className="mt-1.5 mono inline-flex items-center gap-1 text-[10px] text-muted-foreground"
                       >
                         {t.token_preview}
                         <Copy className="h-3 w-3" />

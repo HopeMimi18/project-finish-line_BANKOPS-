@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, Trash2, FileLock2, Copy, Download } from "lucide-react";
-import { generateCid, formatBytes, logAudit } from "@/lib/bankops";
+import { generateCid, formatBytes } from "@/lib/bankops";
+import { writeAuditEvent } from "@/lib/security";
 import { DownloadJustificationDialog } from "@/components/DownloadJustificationDialog";
 import { RowSkeleton } from "@/components/RowSkeleton";
 
@@ -118,7 +119,7 @@ const Upload = () => {
     if (upErr) {
       setBusy(false);
       toast.error(`Upload failed: ${upErr.message}`);
-      await logAudit({ action: "document.upload", result: "error", meta: { error: upErr.message } });
+      await writeAuditEvent({ action: "document.upload", result: "error", meta: { error: upErr.message } });
       return;
     }
 
@@ -139,15 +140,15 @@ const Upload = () => {
       await supabase.storage.from("documents").remove([storagePath]);
       setBusy(false);
       toast.error(`Metadata insert failed: ${insErr.message}`);
-      await logAudit({ action: "document.upload", result: "error", meta: { error: insErr.message } });
+      await writeAuditEvent({ action: "document.upload", result: "error", meta: { error: insErr.message } });
       return;
     }
 
     setBusy(false);
     toast.success("Document encrypted and stored");
-    await logAudit({
+    await writeAuditEvent({
       action: "document.upload",
-      resourceCid: cid,
+      resource_cid: cid,
       meta: {
         filename: nameParsed.data,
         classification: tag,
@@ -167,7 +168,7 @@ const Upload = () => {
       return;
     }
     await supabase.storage.from("documents").remove([storagePath]);
-    await logAudit({ action: "document.delete", resourceCid: cid });
+    await writeAuditEvent({ action: "document.delete", resource_cid: cid, document_id: id });
     toast.success("Deleted");
     qc.invalidateQueries({ queryKey: ["documents"] });
   };

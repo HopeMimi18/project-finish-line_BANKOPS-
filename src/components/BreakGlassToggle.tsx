@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ShieldOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { logAudit } from "@/lib/bankops";
+import { writeAuditEvent } from "@/lib/security";
 
 export const BreakGlassToggle = () => {
   const { isManagerOrAdmin } = useAuth();
@@ -38,7 +37,7 @@ export const BreakGlassToggle = () => {
     if (error) { toast.error(error.message); return; }
     setEnabled(next);
     toast.success(next ? "Break-glass ENABLED — workspace frozen" : "Break-glass disabled");
-    await logAudit({ action: next ? "breakglass.enable" : "breakglass.disable", meta: {} });
+    await writeAuditEvent({ action: next ? "breakglass.enable" : "breakglass.disable", meta: {} });
   };
 
   return (

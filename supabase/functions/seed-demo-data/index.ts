@@ -1,5 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
+async function sha256Hex(value: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function tokenPreview(value: string): string {
+  return value.length <= 8 ? value : `${value.slice(0, 3)}...${value.slice(-4)}`;
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -213,7 +222,8 @@ Deno.serve(async (req) => {
         Array.from(tokArr).map((b) => b.toString(36).padStart(2, "0")).join("").slice(0, 40);
       const expires = new Date(Date.now() + (i === 0 ? 600_000 : 3_600_000)).toISOString();
       const { error: tokErr } = await admin.from("tokens").insert({
-        token: tokenStr,
+        token_hash: await sha256Hex(tokenStr),
+        token_preview: tokenPreview(tokenStr),
         document_id: docId,
         scope_cid: docInfo.cid,
         permissions: ["read"],

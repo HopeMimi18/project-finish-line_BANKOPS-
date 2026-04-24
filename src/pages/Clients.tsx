@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Plus, Trash2, Users, Building2 } from "lucide-react";
 import { toast } from "sonner";
-import { logAudit } from "@/lib/bankops";
+import { writeAuditEvent } from "@/lib/security";
 
 const clientSchema = z.object({
   code: z.string().trim().min(2).max(40).regex(/^[A-Z0-9_-]+$/i, {
@@ -101,7 +101,7 @@ const Clients = () => {
       toast.error(error.message);
       return;
     }
-    await logAudit({
+    await writeAuditEvent({
       action: "client.create",
       meta: { client_id: data.id, code: data.code, name: data.name },
     });
@@ -120,7 +120,7 @@ const Clients = () => {
       toast.error(error.message);
       return;
     }
-    await logAudit({ action: "client.delete", meta: { client_id: id, code: codeStr } });
+    await writeAuditEvent({ action: "client.delete", meta: { client_id: id, code: codeStr } });
     toast.success("Client deleted");
     qc.invalidateQueries({ queryKey: ["clients"] });
     qc.invalidateQueries({ queryKey: ["client-assignments"] });
@@ -142,7 +142,7 @@ const Clients = () => {
       toast.error(error.message);
       return;
     }
-    await logAudit({
+    await writeAuditEvent({
       action: "client.assign",
       meta: { client_id: selectedClient, target_user: assignUser },
     });
@@ -157,7 +157,7 @@ const Clients = () => {
       toast.error(error.message);
       return;
     }
-    await logAudit({
+    await writeAuditEvent({
       action: "client.unassign",
       meta: { client_id: clientId, target_user: uid },
     });

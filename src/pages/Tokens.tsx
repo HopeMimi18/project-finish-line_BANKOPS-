@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Copy, KeyRound, Ban, Loader2 } from "lucide-react";
-import { generateTokenString, logAudit, timeRemaining } from "@/lib/bankops";
+import { generateTokenString, timeRemaining } from "@/lib/bankops";
+import { buildTokenRecord, writeAuditEvent } from "@/lib/security";
 import { RowSkeleton } from "@/components/RowSkeleton";
 
 type Permission = "summarize" | "keywords" | "classify" | "pii_override";
@@ -93,8 +94,10 @@ const Tokens = () => {
     const tokenStr = generateTokenString();
     const expiresAt = new Date(Date.now() + ttl * 1000).toISOString();
 
+    const tokenRecord = await buildTokenRecord(tokenStr);
+
     const { error } = await supabase.from("tokens").insert({
-      token: tokenStr,
+      ...tokenRecord,
       scope_cid: doc.cid,
       document_id: doc.id,
       permissions: perms,
@@ -105,13 +108,13 @@ const Tokens = () => {
 
     if (error) {
       toast.error(error.message);
-      await logAudit({ action: "token.create", result: "error", meta: { error: error.message } });
+      await writeAuditEvent({ action: "token.create", result: "error", meta: { error: error.message } });
       return;
     }
-    await logAudit({
+    await writeAuditEvent({
       action: "token.create",
-      resourceCid: doc.cid,
-      documentId: doc.id,
+      resource_cid: doc.cid,
+      document_id: doc.id,
       meta: { ttl, permissions: perms },
     });
     toast.success("Token created");
@@ -122,7 +125,7 @@ const Tokens = () => {
   const handleRevoke = async (id: string, scopeCid: string) => {
     const { error } = await supabase.from("tokens").update({ revoked: true }).eq("id", id);
     if (error) return toast.error(error.message);
-    await logAudit({ action: "token.revoke", resourceCid: scopeCid });
+    await writeAuditEvent({ action: "token.revoke", resource_cid: scopeCid });
     toast.success("Token revoked");
     qc.invalidateQueries({ queryKey: ["tokens"] });
   };
@@ -271,13 +274,9 @@ const Tokens = () => {
                         )}
                       </div>
                       <button
-                        className="mt-1.5 mono inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground"
-                        onClick={() => {
-                          navigator.clipboard.writeText(t.token);
-                          toast.success("Token copied");
-                        }}
+                        className="mt-1.5 mono inline-flex items-center gap-1 text-[10px] text-muted-foreground"
                       >
-                        {t.token.slice(0, 18)}…
+                        {t.token_preview}
                         <Copy className="h-3 w-3" />
                       </button>
                     </div>

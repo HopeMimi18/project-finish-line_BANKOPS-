@@ -8,12 +8,8 @@ export const BreakGlassBanner = () => {
   useEffect(() => {
     let active = true;
     const fetchIt = async () => {
-      const { data } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("key", "break_glass")
-        .maybeSingle();
-      if (active) setEnabled(!!(data?.value as any)?.enabled);
+      const { data } = await supabase.rpc("get_break_glass");
+      if (active) setEnabled(!!(data as { enabled?: boolean } | null)?.enabled);
     };
     fetchIt();
     const ch = supabase

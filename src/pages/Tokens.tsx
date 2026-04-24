@@ -276,7 +276,7 @@ const Tokens = () => {
                       <button
                         className="mt-1.5 mono inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground"
                         onClick={() => {
-                          navigator.clipboard.writeText(t.token);
+                          navigator.clipboard.writeText(tokenStr);
                           toast.success("Token copied");
                         }}
                       >

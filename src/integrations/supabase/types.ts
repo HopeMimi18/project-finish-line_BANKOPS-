@@ -408,13 +408,6 @@ export type Database = {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean
       }
-      user_can_view_doc: {
-        Args: {
-          _classification: Database["public"]["Enums"]["classification_tag"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
       user_can_view_doc_v2: {
         Args: {
           _classification: Database["public"]["Enums"]["classification_tag"]

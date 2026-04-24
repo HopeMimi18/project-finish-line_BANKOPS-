@@ -78,9 +78,8 @@ const Tokens = () => {
     if (perms.length === 0) return toast.error("Select at least one permission");
 
     // Break-glass guard
-    const { data: bg } = await supabase
-      .from("system_settings").select("value").eq("key", "break_glass").maybeSingle();
-    if ((bg?.value as any)?.enabled) {
+    const { data: bg } = await supabase.rpc("get_break_glass");
+    if ((bg as { enabled?: boolean } | null)?.enabled) {
       return toast.error("Break-glass mode active — token issuance is frozen.");
     }
 

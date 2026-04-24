@@ -396,6 +396,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_break_glass: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

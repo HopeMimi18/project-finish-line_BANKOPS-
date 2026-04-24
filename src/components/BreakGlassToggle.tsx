@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ShieldOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";

@@ -121,7 +121,8 @@ Deno.serve(async (req) => {
   });
 
   if (insertErr) {
-    return json({ error: insertErr.message }, 500);
+    console.error("audit_events insert failed:", insertErr.message);
+    return json({ error: "Failed to record audit event" }, 500);
   }
 
   return json({ ok: true });

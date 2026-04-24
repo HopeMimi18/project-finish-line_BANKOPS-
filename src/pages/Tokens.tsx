@@ -274,10 +274,10 @@ const Tokens = () => {
                         )}
                       </div>
                       <button
+                        disabled={!isActive}
                         className="mt-1.5 mono inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground"
                         onClick={() => {
-                          navigator.clipboard.writeText(tokenStr);
-                          toast.success("Token copied");
+                          toast.info("Tokens are only shown once when created.");
                         }}
                       >
                         {t.token_preview}

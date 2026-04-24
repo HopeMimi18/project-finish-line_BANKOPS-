@@ -60,12 +60,12 @@ const Tokens = () => {
     queryKey: ["tokens"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("tokens")
-        .select("*, documents(filename, classification)")
+        .from("tokens_safe" as any)
+        .select("id, token_preview, scope_cid, document_id, permissions, expires_at, revoked, created_at, created_by, documents(filename, classification)")
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as any[];
     },
   });
 

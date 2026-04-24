@@ -60,5 +60,7 @@ supabase/
 
 ## License
 
-MIT — built as a portfolio piece. Do not use as-is in production without an additional security review.
+© 2026 Hope Lekgeu. All rights reserved.
+
+Portfolio demo — not licensed for reuse, redistribution, or commercial use without explicit written permission.
 

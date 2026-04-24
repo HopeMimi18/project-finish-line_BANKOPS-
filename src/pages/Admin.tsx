@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Loader2, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
-import { logAudit } from "@/lib/bankops";
+import { writeAuditEvent } from "@/lib/security";
 import { AnomalyAlerts } from "@/components/AnomalyAlerts";
 import { BreakGlassToggle } from "@/components/BreakGlassToggle";
 import { SeedDemoDataButton } from "@/components/SeedDemoDataButton";
@@ -103,12 +103,13 @@ const Admin = () => {
       toast.error("User already has that role");
       return;
     }
-    const { error } = await supabase
-      .from("user_roles")
-      .insert({ user_id: userId, role });
+    const { error } = await supabase.rpc("assign_user_role", {
+      _target_user: userId,
+      _role: role,
+    });
     if (error) {
       toast.error(error.message);
-      await logAudit({
+      await writeAuditEvent({
         action: "role.assign",
         result: "error",
         meta: { target_user: userId, role, error: error.message },
@@ -116,7 +117,7 @@ const Admin = () => {
       return;
     }
     toast.success(`Granted '${role}'`);
-    await logAudit({
+    await writeAuditEvent({
       action: "role.assign",
       meta: { target_user: userId, role },
     });
@@ -128,13 +129,15 @@ const Admin = () => {
     if (userId === user?.id && (role === "manager" || role === "admin")) {
       if (!confirm("Remove your OWN privileged role? You may lose admin access.")) return;
     }
-    const { error } = await supabase.from("user_roles").delete().eq("id", roleId);
+    const { error } = await supabase.rpc("remove_user_role", {
+      _role_id: roleId,
+    });
     if (error) {
       toast.error(error.message);
       return;
     }
     toast.success(`Removed '${role}'`);
-    await logAudit({
+    await writeAuditEvent({
       action: "role.remove",
       meta: { target_user: userId, role },
     });

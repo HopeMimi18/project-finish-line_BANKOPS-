@@ -1,30 +1,56 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Database, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const SeedDemoDataButton = () => {
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
   const qc = useQueryClient();
 
   const seed = async () => {
-    if (!confirm("Seed demo data into this workspace? This adds sample clients, documents, tokens and audit events.")) return;
     setBusy(true);
-    const { data, error } = await supabase.functions.invoke("seed-demo-data", {
-      method: "POST",
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    setOpen(false);
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-demo-data", {
+        method: "POST",
+      });
+      if (error) {
+        console.error("seed-demo-data error", error);
+        toast.error(`Seed failed: ${error.message}`);
+        return;
+      }
+      const payload = data as
+        | { ok?: boolean; error?: string; summary?: Record<string, number> }
+        | null;
+      if (payload?.error) {
+        toast.error(`Seed failed: ${payload.error}`);
+        return;
+      }
+      const s = payload?.summary ?? {};
+      toast.success(
+        `Seeded · ${s.clients_created ?? 0} clients · ${s.documents_created ?? 0} docs · ${s.tokens_created ?? 0} tokens · ${s.audit_events_created ?? 0} events`,
+      );
+      qc.invalidateQueries();
+    } catch (e) {
+      console.error("seed-demo-data threw", e);
+      toast.error(`Seed failed: ${(e as Error).message}`);
+    } finally {
+      setBusy(false);
     }
-    const s = (data as { summary?: Record<string, number> })?.summary ?? {};
-    toast.success(
-      `Seeded · ${s.clients_created ?? 0} clients · ${s.documents_created ?? 0} docs · ${s.tokens_created ?? 0} tokens · ${s.audit_events_created ?? 0} events`,
-    );
-    qc.invalidateQueries();
   };
 
   return (
@@ -41,10 +67,27 @@ export const SeedDemoDataButton = () => {
             </div>
           </div>
         </div>
-        <Button size="sm" onClick={seed} disabled={busy}>
-          {busy ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Database className="mr-2 h-3.5 w-3.5" />}
-          Seed demo data
-        </Button>
+        <AlertDialog open={open} onOpenChange={setOpen}>
+          <AlertDialogTrigger asChild>
+            <Button size="sm" disabled={busy}>
+              {busy ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Database className="mr-2 h-3.5 w-3.5" />}
+              Seed demo data
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Seed demo data?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Adds sample clients (ACME, Blue River), 5 documents, 3 tokens and ~11 audit events
+                to this workspace. Safe to run multiple times — duplicates are skipped where possible.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={seed}>Seed now</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

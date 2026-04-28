@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Landmark, Loader2, ShieldCheck, KeyRound, Sparkles, Lock, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -29,6 +30,7 @@ const Auth = () => {
 
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
 
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
@@ -46,6 +48,16 @@ const Auth = () => {
     if (!pwParsed.success) return toast.error(pwParsed.error.issues[0].message);
 
     setBusy(true);
+    // "Remember me": persist session in localStorage (survives browser restart).
+    // When unchecked, mirror session into sessionStorage so it clears on tab close.
+    try {
+      if (rememberMe) {
+        sessionStorage.removeItem("bankops:session_only");
+      } else {
+        sessionStorage.setItem("bankops:session_only", "1");
+      }
+    } catch { /* ignore */ }
+
     const { error } = await supabase.auth.signInWithPassword({
       email: emailParsed.data,
       password: pwParsed.data,
@@ -55,6 +67,22 @@ const Auth = () => {
       toast.error(error.message === "Invalid login credentials" ? "Invalid email or password" : error.message);
       return;
     }
+
+    // If user opted out of "remember me", clear persisted session on tab close
+    // by removing the supabase auth token from localStorage when the tab unloads.
+    if (!rememberMe) {
+      const clearOnUnload = () => {
+        try {
+          for (const key of Object.keys(localStorage)) {
+            if (key.startsWith("sb-") && key.endsWith("-auth-token")) {
+              localStorage.removeItem(key);
+            }
+          }
+        } catch { /* ignore */ }
+      };
+      window.addEventListener("pagehide", clearOnUnload, { once: true });
+    }
+
     toast.success("Signed in");
     navigate("/", { replace: true });
   };
@@ -197,6 +225,20 @@ const Auth = () => {
                       disabled={busy}
                       required
                     />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="si-remember"
+                      checked={rememberMe}
+                      onCheckedChange={(v) => setRememberMe(v === true)}
+                      disabled={busy}
+                    />
+                    <Label
+                      htmlFor="si-remember"
+                      className="cursor-pointer text-xs font-normal text-muted-foreground"
+                    >
+                      Remember me on this device
+                    </Label>
                   </div>
                   <Button type="submit" className="w-full" disabled={busy}>
                     {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

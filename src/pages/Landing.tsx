@@ -177,7 +177,8 @@ const Landing = () => {
                   <div className="flex items-center justify-between rounded-md border border-border/60 bg-surface/50 px-3 py-2">
                     <span className="text-muted-foreground">Roles granted</span>
                     <span className="mono">
-                      <span className="text-primary">ops</span> + <span className="text-primary">manager</span>
+                      <span className="text-primary">ops</span>{" "}
+                      <span className="text-muted-foreground">(read-only)</span>
                     </span>
                   </div>
                   <div

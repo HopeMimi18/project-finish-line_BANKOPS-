@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   Landmark,
@@ -21,11 +22,17 @@ import {
   Cpu,
   Loader2,
   Zap,
+  CircleUser,
+  LogOut,
 } from "lucide-react";
+
+const DEMO_EMAIL = "demo@bankops.example";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [demoLoading, setDemoLoading] = useState(false);
+  const isDemoSession = user?.email?.toLowerCase() === DEMO_EMAIL;
 
   const startDemo = async () => {
     if (demoLoading) return;
@@ -54,6 +61,16 @@ const Landing = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out of the demo");
+    } catch (e) {
+      console.error("sign out failed", e);
+      toast.error("Couldn't sign out");
+    }
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       {/* Top nav */}
@@ -75,15 +92,36 @@ const Landing = () => {
             <Link to="/threat-model" className="hover:text-foreground">Threat model</Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>Sign in</Button>
-            <Button size="sm" onClick={startDemo} disabled={demoLoading}>
-              {demoLoading ? (
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Zap className="mr-1.5 h-3.5 w-3.5" />
-              )}
-              Try the demo
-            </Button>
+            {user ? (
+              <>
+                <span
+                  className="hidden badge-dot border border-success/30 bg-success/10 text-success sm:inline-flex"
+                  title={`Signed in as ${user.email ?? "current user"}`}
+                >
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
+                  {isDemoSession ? "Demo session active" : "Signed in"}
+                  <span className="mono ml-1 text-foreground/80">{user.email}</span>
+                </span>
+                <Button size="sm" onClick={() => navigate("/dashboard")}>
+                  Open workspace <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleSignOut} title="Sign out">
+                  <LogOut className="h-3.5 w-3.5" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>Sign in</Button>
+                <Button size="sm" onClick={startDemo} disabled={demoLoading}>
+                  {demoLoading ? (
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Zap className="mr-1.5 h-3.5 w-3.5" />
+                  )}
+                  Try the demo
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -133,8 +171,37 @@ const Landing = () => {
                 </div>
                 <div className="mt-3 grid gap-2 text-xs">
                   <div className="flex items-center justify-between rounded-md border border-border/60 bg-surface/50 px-3 py-2">
-                    <span className="text-muted-foreground">One-click demo →</span>
-                    <span className="mono">shared <span className="text-primary">ops</span> account, pre-seeded</span>
+                    <span className="text-muted-foreground">Shared demo account</span>
+                    <span className="mono text-foreground">{DEMO_EMAIL}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-md border border-border/60 bg-surface/50 px-3 py-2">
+                    <span className="text-muted-foreground">Roles granted</span>
+                    <span className="mono">
+                      <span className="text-primary">ops</span> + <span className="text-primary">manager</span>
+                    </span>
+                  </div>
+                  <div
+                    className={`flex items-center justify-between rounded-md border px-3 py-2 ${
+                      isDemoSession
+                        ? "border-success/40 bg-success/10"
+                        : user
+                        ? "border-primary/30 bg-primary/5"
+                        : "border-border/60 bg-surface/50"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                      <CircleUser className="h-3 w-3" /> Session
+                    </span>
+                    {isDemoSession ? (
+                      <span className="mono inline-flex items-center gap-1.5 text-success">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
+                        active as {user!.email}
+                      </span>
+                    ) : user ? (
+                      <span className="mono text-primary">signed in as {user.email}</span>
+                    ) : (
+                      <span className="mono text-muted-foreground">not signed in</span>
+                    )}
                   </div>
                   <p className="text-[11px] text-muted-foreground">
                     Click <span className="mono text-foreground">Try the demo</span> to land in a populated

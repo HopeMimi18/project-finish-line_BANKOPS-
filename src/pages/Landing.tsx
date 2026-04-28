@@ -1,4 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Landmark,
@@ -16,10 +19,40 @@ import {
   ScrollText,
   Database,
   Cpu,
+  Loader2,
+  Zap,
 } from "lucide-react";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  const startDemo = async () => {
+    if (demoLoading) return;
+    setDemoLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("demo-login");
+      if (error) throw error;
+      const { access_token, refresh_token } = (data ?? {}) as {
+        access_token?: string;
+        refresh_token?: string;
+      };
+      if (!access_token || !refresh_token) {
+        throw new Error("Demo session not returned");
+      }
+      const { error: setErr } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      });
+      if (setErr) throw setErr;
+      toast.success("Welcome to the demo workspace");
+      navigate("/dashboard", { replace: true });
+    } catch (e) {
+      console.error("demo login failed", e);
+      toast.error("Couldn't start the demo. Try again or sign up manually.");
+      setDemoLoading(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
@@ -43,8 +76,13 @@ const Landing = () => {
           </nav>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>Sign in</Button>
-            <Button size="sm" onClick={() => navigate("/auth")}>
-              Try the demo <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+            <Button size="sm" onClick={startDemo} disabled={demoLoading}>
+              {demoLoading ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Zap className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              Try the demo
             </Button>
           </div>
         </div>
@@ -73,8 +111,13 @@ const Landing = () => {
                 and a tamper-evident audit trail. So ops teams can use AI safely on real client work.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button size="lg" onClick={() => navigate("/auth")}>
-                  Try the live demo <ArrowRight className="ml-2 h-4 w-4" />
+                <Button size="lg" onClick={startDemo} disabled={demoLoading}>
+                  {demoLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Zap className="mr-2 h-4 w-4" />
+                  )}
+                  Try the live demo (no signup)
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link to="/threat-model">
@@ -86,17 +129,18 @@ const Landing = () => {
               {/* Demo creds */}
               <div className="mt-10 surface-card max-w-xl p-4">
                 <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                  <KeyRound className="h-3.5 w-3.5 text-primary" /> DEMO CREDENTIALS
+                  <KeyRound className="h-3.5 w-3.5 text-primary" /> HOW THE DEMO WORKS
                 </div>
                 <div className="mt-3 grid gap-2 text-xs">
                   <div className="flex items-center justify-between rounded-md border border-border/60 bg-surface/50 px-3 py-2">
-                    <span className="text-muted-foreground">Create your own account →</span>
-                    <span className="mono">defaults to <span className="text-primary">ops</span> role</span>
+                    <span className="text-muted-foreground">One-click demo →</span>
+                    <span className="mono">shared <span className="text-primary">ops</span> account, pre-seeded</span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Sign up with any email + 8-char password. The first account you elevate to{" "}
-                    <span className="mono text-foreground">manager</span> via the database becomes the
-                    workspace admin and can seed demo data + grant other roles.
+                    Click <span className="mono text-foreground">Try the demo</span> to land in a populated
+                    workspace instantly — no signup. Or create your own account from the{" "}
+                    <Link to="/auth" className="underline hover:text-foreground">sign-in page</Link>{" "}
+                    to explore from a clean slate.
                   </p>
                 </div>
               </div>
@@ -276,8 +320,13 @@ const Landing = () => {
             and a verifiable hash chain.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Button size="lg" onClick={() => navigate("/auth")}>
-              Open the demo <ArrowRight className="ml-2 h-4 w-4" />
+            <Button size="lg" onClick={startDemo} disabled={demoLoading}>
+              {demoLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <ArrowRight className="mr-2 h-4 w-4" />
+              )}
+              Open the demo
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/threat-model">

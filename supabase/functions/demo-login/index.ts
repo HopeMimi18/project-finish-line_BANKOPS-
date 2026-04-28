@@ -207,25 +207,27 @@ Deno.serve(async (req) => {
     if (!demoUserId) throw new Error("could not resolve demo user id");
 
     // 2) Ensure the demo user has the roles needed for the showcase experience.
-    //    `manager` unlocks Admin & Access + Clients pages and read-all on audit/tokens.
-    //    `ops` keeps the default operator UX consistent.
-    // Demo account is intentionally limited to `ops` only.
-    // `manager`/`admin` are NEVER granted to the demo user because demo sessions
-    // are minted unauthenticated and would otherwise let any caller mutate
-    // workspace-wide state (break-glass, system_settings, all-tenant reads).
+    //    Demo gets `manager` + `ops` so every page is fully functional.
+    //    Workspace-wide write paths are sandboxed via `is_demo_user()` RLS
+    //    guards on system_settings, clients, user_roles and client_assignments,
+    //    so demo visitors cannot affect real-tenant data or escalate to admin.
     const { data: existingRoles } = await admin
       .from("user_roles")
       .select("id, role")
       .eq("user_id", demoUserId);
     const roleRows = (existingRoles ?? []) as { id: string; role: string }[];
-    const hasOps = roleRows.some((r) => r.role === "ops");
-    if (!hasOps) {
-      await admin.from("user_roles").insert({ user_id: demoUserId, role: "ops" });
+    const desired: string[] = ["ops", "manager"];
+    for (const role of desired) {
+      if (!roleRows.some((r) => r.role === role)) {
+        await admin.from("user_roles").insert({ user_id: demoUserId, role });
+      }
     }
-    // Strip any elevated roles that may have been granted by previous versions.
-    const elevated = roleRows.filter((r) => r.role !== "ops").map((r) => r.id);
-    if (elevated.length) {
-      await admin.from("user_roles").delete().in("id", elevated);
+    // Strip any other elevated roles (e.g. admin) that may have been granted.
+    const extras = roleRows
+      .filter((r) => !desired.includes(r.role))
+      .map((r) => r.id);
+    if (extras.length) {
+      await admin.from("user_roles").delete().in("id", extras);
     }
 
     // 3) Seed data once.

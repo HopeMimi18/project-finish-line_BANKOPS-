@@ -122,8 +122,6 @@ Deno.serve(async (req) => {
       });
     }
     const userId = userData.user.id;
-    const userEmail = userData.user.email?.toLowerCase() ?? "";
-    const isDemoUser = userEmail === "demo@bankops.example";
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
@@ -133,7 +131,7 @@ Deno.serve(async (req) => {
       .select("role")
       .eq("user_id", userId);
     const roleSet = new Set((roles ?? []).map((r) => r.role));
-    if (!isDemoUser && !roleSet.has("manager") && !roleSet.has("admin")) {
+    if (!roleSet.has("manager") && !roleSet.has("admin")) {
       return new Response(JSON.stringify({ error: "manager or admin role required" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -209,16 +209,23 @@ Deno.serve(async (req) => {
     // 2) Ensure the demo user has the roles needed for the showcase experience.
     //    `manager` unlocks Admin & Access + Clients pages and read-all on audit/tokens.
     //    `ops` keeps the default operator UX consistent.
+    // Demo account is intentionally limited to `ops` only.
+    // `manager`/`admin` are NEVER granted to the demo user because demo sessions
+    // are minted unauthenticated and would otherwise let any caller mutate
+    // workspace-wide state (break-glass, system_settings, all-tenant reads).
     const { data: existingRoles } = await admin
       .from("user_roles")
-      .select("role")
+      .select("id, role")
       .eq("user_id", demoUserId);
-    const roleSet = new Set((existingRoles ?? []).map((r: any) => r.role));
-    const desiredRoles = ["ops", "manager"] as const;
-    for (const role of desiredRoles) {
-      if (!roleSet.has(role)) {
-        await admin.from("user_roles").insert({ user_id: demoUserId, role });
-      }
+    const roleRows = (existingRoles ?? []) as { id: string; role: string }[];
+    const hasOps = roleRows.some((r) => r.role === "ops");
+    if (!hasOps) {
+      await admin.from("user_roles").insert({ user_id: demoUserId, role: "ops" });
+    }
+    // Strip any elevated roles that may have been granted by previous versions.
+    const elevated = roleRows.filter((r) => r.role !== "ops").map((r) => r.id);
+    if (elevated.length) {
+      await admin.from("user_roles").delete().in("id", elevated);
     }
 
     // 3) Seed data once.

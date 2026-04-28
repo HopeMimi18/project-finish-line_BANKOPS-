@@ -30,7 +30,7 @@ const DEMO_EMAIL = "demo@bankops.example";
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, setImpersonatedRoles } = useAuth();
   const [demoLoading, setDemoLoading] = useState(false);
   const isDemoSession = user?.email?.toLowerCase() === DEMO_EMAIL;
 
@@ -52,7 +52,11 @@ const Landing = () => {
         refresh_token,
       });
       if (setErr) throw setErr;
-      toast.success("Welcome to the demo workspace");
+      // Demo DB role is `ops` (read-only) for safety. UI-impersonate `manager`
+      // so visitors can explore Admin & Access, Clients, full Audit, etc.
+      // Privileged DB writes still fail at RLS — by design.
+      setImpersonatedRoles(["manager", "ops"]);
+      toast.success("Welcome — exploring as Manager (read-only)");
       navigate("/dashboard", { replace: true });
     } catch (e) {
       console.error("demo login failed", e);
@@ -177,8 +181,8 @@ const Landing = () => {
                   <div className="flex items-center justify-between rounded-md border border-border/60 bg-surface/50 px-3 py-2">
                     <span className="text-muted-foreground">Roles granted</span>
                     <span className="mono">
-                      <span className="text-primary">ops</span>{" "}
-                      <span className="text-muted-foreground">(read-only)</span>
+                      <span className="text-primary">manager</span>{" "}
+                      <span className="text-muted-foreground">UI preview · writes blocked by RLS</span>
                     </span>
                   </div>
                   <div

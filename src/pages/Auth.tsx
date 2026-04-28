@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Landmark, Loader2, ShieldCheck, KeyRound, Sparkles, Lock } from "lucide-react";
+import { Landmark, Loader2, ShieldCheck, KeyRound, Sparkles, Lock, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const emailSchema = z.string().trim().email({ message: "Enter a valid email" }).max(255);
 const passwordSchema = z
@@ -139,6 +140,13 @@ const Auth = () => {
       {/* Right — form */}
       <div className="relative flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
+          <Link
+            to="/landing"
+            className="mb-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to landing
+          </Link>
           <div className="mb-8 flex items-center gap-2.5 lg:hidden">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary shadow-glow">
               <Landmark className="h-5 w-5 text-primary-foreground" />

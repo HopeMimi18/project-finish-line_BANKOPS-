@@ -24,30 +24,50 @@ export const SeedDemoDataButton = () => {
   const seed = async () => {
     setBusy(true);
     setOpen(false);
+    const toastId = toast.loading("Seeding demo data…", {
+      description: "Creating clients, documents, tokens and audit events.",
+    });
     try {
       const { data, error } = await supabase.functions.invoke("seed-demo-data", {
         method: "POST",
       });
       if (error) {
         console.error("seed-demo-data error", error);
-        toast.error(`Seed failed: ${error.message}`);
+        toast.error("Seed failed", {
+          id: toastId,
+          description: error.message,
+        });
         return;
       }
       const payload = data as
         | { ok?: boolean; error?: string; summary?: Record<string, number> }
         | null;
       if (payload?.error) {
-        toast.error(`Seed failed: ${payload.error}`);
+        toast.error("Seed failed", {
+          id: toastId,
+          description: payload.error,
+        });
         return;
       }
       const s = payload?.summary ?? {};
-      toast.success(
-        `Seeded · ${s.clients_created ?? 0} clients · ${s.documents_created ?? 0} docs · ${s.tokens_created ?? 0} tokens · ${s.audit_events_created ?? 0} events`,
-      );
+      const lines = [
+        `${s.clients_created ?? 0} clients`,
+        `${s.documents_created ?? 0} documents`,
+        `${s.tokens_created ?? 0} access tokens`,
+        `${s.audit_events_created ?? 0} audit events`,
+      ];
+      toast.success("Demo data seeded", {
+        id: toastId,
+        description: lines.join(" · "),
+        duration: 6000,
+      });
       qc.invalidateQueries();
     } catch (e) {
       console.error("seed-demo-data threw", e);
-      toast.error(`Seed failed: ${(e as Error).message}`);
+      toast.error("Seed failed", {
+        id: toastId,
+        description: (e as Error).message,
+      });
     } finally {
       setBusy(false);
     }
@@ -71,7 +91,7 @@ export const SeedDemoDataButton = () => {
           <AlertDialogTrigger asChild>
             <Button size="sm" disabled={busy}>
               {busy ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Database className="mr-2 h-3.5 w-3.5" />}
-              Seed demo data
+              {busy ? "Seeding…" : "Seed demo data"}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>

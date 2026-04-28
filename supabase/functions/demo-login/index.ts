@@ -206,15 +206,19 @@ Deno.serve(async (req) => {
     }
     if (!demoUserId) throw new Error("could not resolve demo user id");
 
-    // 2) Ensure the demo user has the ops role (handle_new_user trigger should add it,
-    //    but be defensive in case the user pre-exists from another path).
+    // 2) Ensure the demo user has the roles needed for the showcase experience.
+    //    `manager` unlocks Admin & Access + Clients pages and read-all on audit/tokens.
+    //    `ops` keeps the default operator UX consistent.
     const { data: existingRoles } = await admin
       .from("user_roles")
       .select("role")
       .eq("user_id", demoUserId);
     const roleSet = new Set((existingRoles ?? []).map((r: any) => r.role));
-    if (!roleSet.has("ops")) {
-      await admin.from("user_roles").insert({ user_id: demoUserId, role: "ops" });
+    const desiredRoles = ["ops", "manager"] as const;
+    for (const role of desiredRoles) {
+      if (!roleSet.has(role)) {
+        await admin.from("user_roles").insert({ user_id: demoUserId, role });
+      }
     }
 
     // 3) Seed data once.

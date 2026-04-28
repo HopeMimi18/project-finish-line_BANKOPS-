@@ -404,6 +404,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_demo_user: { Args: never; Returns: boolean }
       remove_user_role: { Args: { _role_id: string }; Returns: undefined }
       user_assigned_to_client: {
         Args: { _client_id: string; _user_id: string }

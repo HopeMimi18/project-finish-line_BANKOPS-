@@ -243,8 +243,10 @@ const Admin = () => {
                               {r.role}
                               <button
                                 type="button"
+                                disabled={isDemoUser}
                                 onClick={() => remove(r.id, p.user_id, r.role)}
-                                className="ml-0.5 rounded p-0.5 hover:bg-foreground/10"
+                                className="ml-0.5 rounded p-0.5 hover:bg-foreground/10 disabled:cursor-not-allowed disabled:opacity-40"
+                                title={isDemoUser ? "Disabled in demo session" : `Remove ${r.role}`}
                                 aria-label={`Remove ${r.role}`}
                               >
                                 <X className="h-3 w-3" />

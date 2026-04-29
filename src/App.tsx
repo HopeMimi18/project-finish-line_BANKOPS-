@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import ThreatModel from "./pages/ThreatModel";
 import HowItWorks from "./pages/HowItWorks";
+import OnePager from "./pages/OnePager";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/" element={<LandingOrApp />} />
             <Route path="/landing" element={<Landing />} />
             <Route path="/threat-model" element={<ThreatModel />} />
+            <Route path="/one-pager" element={<OnePager />} />
             <Route path="/auth" element={<Auth />} />
 
             <Route

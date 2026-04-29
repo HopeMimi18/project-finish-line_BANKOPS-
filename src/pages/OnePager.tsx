@@ -166,6 +166,9 @@ const OnePager = () => {
             scoped ephemeral tokens, RLS-enforced document access, and a tamper-evident audit
             trail. Ops teams get to use AI on real client work; compliance gets a defensible record.
           </p>
+          <p className="mono mt-2 text-[11px] italic text-muted-foreground">
+            Designed to complement — not replace — enterprise stacks like Microsoft Purview and Azure OpenAI.
+          </p>
         </section>
 
         {/* Problem / Solution row */}

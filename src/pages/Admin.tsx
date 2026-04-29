@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Plus, Search, X } from "lucide-react";
+import { Eye, Loader2, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { writeAuditEvent } from "@/lib/security";
 import { AnomalyAlerts } from "@/components/AnomalyAlerts";
@@ -47,7 +47,7 @@ interface ProfileRow {
 }
 
 const Admin = () => {
-  const { user } = useAuth();
+  const { user, isDemoUser } = useAuth();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [addingFor, setAddingFor] = useState<string | null>(null);
@@ -98,6 +98,10 @@ const Admin = () => {
   }, [search, profiles.data]);
 
   const assign = async (userId: string, role: AppRole) => {
+    if (isDemoUser) {
+      toast.info("Demo session is read-only on Admin & Access");
+      return;
+    }
     const existing = rolesByUser.get(userId) ?? [];
     if (existing.some((r) => r.role === role)) {
       toast.error("User already has that role");
@@ -126,6 +130,10 @@ const Admin = () => {
   };
 
   const remove = async (roleId: string, userId: string, role: AppRole) => {
+    if (isDemoUser) {
+      toast.info("Demo session is read-only on Admin & Access");
+      return;
+    }
     if (userId === user?.id && (role === "manager" || role === "admin")) {
       if (!confirm("Remove your OWN privileged role? You may lose admin access.")) return;
     }
@@ -164,6 +172,21 @@ const Admin = () => {
         }
       />
       <div className="space-y-6 p-6">
+        {isDemoUser && (
+          <div className="surface-card flex items-start gap-3 border-warning/40 bg-warning/5 p-4">
+            <div className="rounded-md bg-warning/15 p-2 text-warning">
+              <Eye className="h-4 w-4" />
+            </div>
+            <div className="text-sm">
+              <div className="font-semibold">Demo session — read-only</div>
+              <p className="text-xs text-muted-foreground">
+                You're signed in as the shared demo manager. Role changes, break-glass toggles, and
+                client edits are disabled here so the workspace stays stable for everyone. The data
+                below is real — the buttons are just frozen.
+              </p>
+            </div>
+          </div>
+        )}
         <div className="grid gap-4 lg:grid-cols-2">
           <SeedDemoDataButton />
           <AuditChainVerifier />
@@ -220,8 +243,10 @@ const Admin = () => {
                               {r.role}
                               <button
                                 type="button"
+                                disabled={isDemoUser}
                                 onClick={() => remove(r.id, p.user_id, r.role)}
-                                className="ml-0.5 rounded p-0.5 hover:bg-foreground/10"
+                                className="ml-0.5 rounded p-0.5 hover:bg-foreground/10 disabled:cursor-not-allowed disabled:opacity-40"
+                                title={isDemoUser ? "Disabled in demo session" : `Remove ${r.role}`}
                                 aria-label={`Remove ${r.role}`}
                               >
                                 <X className="h-3 w-3" />
@@ -266,6 +291,8 @@ const Admin = () => {
                           <Button
                             size="sm"
                             variant="outline"
+                            disabled={isDemoUser}
+                            title={isDemoUser ? "Disabled in demo session" : undefined}
                             onClick={() => {
                               setAddingFor(p.user_id);
                               setNewRole("ops");

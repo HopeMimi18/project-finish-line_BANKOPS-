@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Trash2, Users, Building2 } from "lucide-react";
+import { Eye, Loader2, Plus, Trash2, Users, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { writeAuditEvent } from "@/lib/security";
 
@@ -26,7 +26,7 @@ const clientSchema = z.object({
 });
 
 const Clients = () => {
-  const { user, isManagerOrAdmin } = useAuth();
+  const { user, isManagerOrAdmin, isDemoUser } = useAuth();
   const qc = useQueryClient();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
@@ -85,6 +85,10 @@ const Clients = () => {
 
   const create = async () => {
     if (!user) return;
+    if (isDemoUser) {
+      toast.info("Demo session is read-only on Clients");
+      return;
+    }
     const parsed = clientSchema.safeParse({ code, name });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -112,6 +116,10 @@ const Clients = () => {
   };
 
   const removeClient = async (id: string, codeStr: string) => {
+    if (isDemoUser) {
+      toast.info("Demo session is read-only on Clients");
+      return;
+    }
     if (!confirm(`Delete client ${codeStr}? All assignments will be removed; documents linked to it will become unscoped.`)) {
       return;
     }
@@ -127,6 +135,10 @@ const Clients = () => {
   };
 
   const addAssignment = async () => {
+    if (isDemoUser) {
+      toast.info("Demo session is read-only on Clients");
+      return;
+    }
     if (!selectedClient || !assignUser) return;
     const exists = (assignmentsByClient.get(selectedClient) ?? []).some(
       (a) => a.user_id === assignUser,
@@ -152,6 +164,10 @@ const Clients = () => {
   };
 
   const removeAssignment = async (id: string, clientId: string, uid: string) => {
+    if (isDemoUser) {
+      toast.info("Demo session is read-only on Clients");
+      return;
+    }
     const { error } = await supabase.from("client_assignments").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
@@ -180,6 +196,24 @@ const Clients = () => {
         description="Create client records and assign which users may access documents linked to each client. Enforces 'need to know' segmentation."
       />
 
+      {isDemoUser && (
+        <div className="px-6 pt-6">
+          <div className="surface-card flex items-start gap-3 border-warning/40 bg-warning/5 p-4">
+            <div className="rounded-md bg-warning/15 p-2 text-warning">
+              <Eye className="h-4 w-4" />
+            </div>
+            <div className="text-sm">
+              <div className="font-semibold">Demo session — read-only</div>
+              <p className="text-xs text-muted-foreground">
+                Browse the populated client list and assignments to see how 'need to know'
+                segmentation works. Create / delete / assign actions are disabled in the shared demo
+                workspace.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-6 px-6 py-6 lg:grid-cols-5">
         {/* Create + list */}
         <div className="surface-card p-5 lg:col-span-2">
@@ -196,6 +230,7 @@ const Clients = () => {
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 maxLength={40}
                 className="mono"
+                disabled={isDemoUser}
               />
             </div>
             <div className="space-y-1.5">
@@ -206,9 +241,15 @@ const Clients = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={120}
+                disabled={isDemoUser}
               />
             </div>
-            <Button onClick={create} disabled={creating} className="w-full">
+            <Button
+              onClick={create}
+              disabled={creating || isDemoUser}
+              className="w-full"
+              title={isDemoUser ? "Disabled in demo session" : undefined}
+            >
               {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <Plus className="mr-1.5 h-4 w-4" /> Add client
             </Button>
@@ -251,11 +292,12 @@ const Clients = () => {
                     <Button
                       size="icon"
                       variant="ghost"
+                      disabled={isDemoUser}
+                      title={isDemoUser ? "Disabled in demo session" : "Delete client"}
                       onClick={(e) => {
                         e.stopPropagation();
                         removeClient(c.id, c.code);
                       }}
-                      title="Delete client"
                     >
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
@@ -280,7 +322,7 @@ const Clients = () => {
               <div className="mt-4 flex items-end gap-2">
                 <div className="flex-1 space-y-1.5">
                   <Label>Add user to client</Label>
-                  <Select value={assignUser} onValueChange={setAssignUser}>
+                  <Select value={assignUser} onValueChange={setAssignUser} disabled={isDemoUser}>
                     <SelectTrigger>
                       <SelectValue placeholder="Pick a user…" />
                     </SelectTrigger>
@@ -293,7 +335,11 @@ const Clients = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={addAssignment} disabled={!assignUser}>
+                <Button
+                  onClick={addAssignment}
+                  disabled={!assignUser || isDemoUser}
+                  title={isDemoUser ? "Disabled in demo session" : undefined}
+                >
                   <Plus className="mr-1.5 h-4 w-4" /> Assign
                 </Button>
               </div>
@@ -316,8 +362,10 @@ const Clients = () => {
                       {userLabel(a.user_id)}
                       <button
                         type="button"
+                        disabled={isDemoUser}
                         onClick={() => removeAssignment(a.id, selectedClient, a.user_id)}
-                        className="rounded p-0.5 hover:bg-foreground/10"
+                        className="rounded p-0.5 hover:bg-foreground/10 disabled:cursor-not-allowed disabled:opacity-40"
+                        title={isDemoUser ? "Disabled in demo session" : "Remove"}
                         aria-label="Remove"
                       >
                         ×

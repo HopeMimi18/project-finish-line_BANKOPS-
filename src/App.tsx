@@ -20,6 +20,7 @@ import Landing from "./pages/Landing";
 import ThreatModel from "./pages/ThreatModel";
 import HowItWorks from "./pages/HowItWorks";
 import OnePager from "./pages/OnePager";
+import Roadmap from "./pages/Roadmap";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
             >
               <Route path="/dashboard" element={<Index />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/roadmap" element={<Roadmap />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/tokens" element={<Tokens />} />
               <Route path="/assist" element={<Assist />} />

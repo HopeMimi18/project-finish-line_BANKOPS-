@@ -360,4 +360,14 @@ const Stat = ({ value, label }: { value: string; label: string }) => (
   </div>
 );
 
+const Gap = ({ n, title, body }: { n: string; title: string; body: string }) => (
+  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+    <div className="flex items-center justify-between">
+      <div className="text-[12px] font-semibold">{title}</div>
+      <span className="mono text-[10px] text-destructive">{n}</span>
+    </div>
+    <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">{body}</p>
+  </div>
+);
+
 export default OnePager;

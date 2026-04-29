@@ -38,15 +38,22 @@ const OnePager = () => {
       const backgroundColor = bg ? `hsl(${bg})` : "#ffffff";
 
       const canvas = await html2canvas(sheetRef.current, {
-        scale: 2,
+        scale: Math.max(3, window.devicePixelRatio * 3),
         backgroundColor,
         useCORS: true,
+        imageTimeout: 0,
+        logging: false,
         windowWidth: sheetRef.current.scrollWidth,
         windowHeight: sheetRef.current.scrollHeight,
       });
 
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
       const margin = 8;
@@ -54,7 +61,7 @@ const OnePager = () => {
       const imgH = (canvas.height * usableW) / canvas.width;
 
       if (imgH <= pageH - margin * 2) {
-        pdf.addImage(imgData, "PNG", margin, margin, usableW, imgH);
+        pdf.addImage(imgData, "PNG", margin, margin, usableW, imgH, undefined, "FAST");
       } else {
         // Slice the tall canvas across multiple A4 pages.
         const pageHpx = ((pageH - margin * 2) * canvas.width) / usableW;
@@ -73,7 +80,7 @@ const OnePager = () => {
           const sliceData = slice.toDataURL("image/png");
           const sliceImgH = (sliceH * usableW) / canvas.width;
           if (pageIdx > 0) pdf.addPage();
-          pdf.addImage(sliceData, "PNG", margin, margin, usableW, sliceImgH);
+          pdf.addImage(sliceData, "PNG", margin, margin, usableW, sliceImgH, undefined, "FAST");
           rendered += sliceH;
           pageIdx += 1;
         }

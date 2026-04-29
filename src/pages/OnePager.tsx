@@ -1,4 +1,8 @@
 import { Link } from "react-router-dom";
+import { useRef, useState } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { toast } from "sonner";
 import {
   Landmark,
   ShieldCheck,
@@ -14,10 +18,80 @@ import {
   Cpu,
   ArrowLeft,
   Printer,
+  Download,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const OnePager = () => {
+  const sheetRef = useRef<HTMLElement | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPdf = async () => {
+    if (!sheetRef.current || exporting) return;
+    setExporting(true);
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      // Resolve theme background so the canvas isn't transparent.
+      const bg =
+        getComputedStyle(document.documentElement).getPropertyValue("--background").trim();
+      const backgroundColor = bg ? `hsl(${bg})` : "#ffffff";
+
+      const canvas = await html2canvas(sheetRef.current, {
+        scale: 2,
+        backgroundColor,
+        useCORS: true,
+        windowWidth: sheetRef.current.scrollWidth,
+        windowHeight: sheetRef.current.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const usableW = pageW - margin * 2;
+      const imgH = (canvas.height * usableW) / canvas.width;
+
+      if (imgH <= pageH - margin * 2) {
+        pdf.addImage(imgData, "PNG", margin, margin, usableW, imgH);
+      } else {
+        // Slice the tall canvas across multiple A4 pages.
+        const pageHpx = ((pageH - margin * 2) * canvas.width) / usableW;
+        let rendered = 0;
+        let pageIdx = 0;
+        while (rendered < canvas.height) {
+          const sliceH = Math.min(pageHpx, canvas.height - rendered);
+          const slice = document.createElement("canvas");
+          slice.width = canvas.width;
+          slice.height = sliceH;
+          const ctx = slice.getContext("2d");
+          if (!ctx) break;
+          ctx.fillStyle = backgroundColor;
+          ctx.fillRect(0, 0, slice.width, slice.height);
+          ctx.drawImage(canvas, 0, rendered, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+          const sliceData = slice.toDataURL("image/png");
+          const sliceImgH = (sliceH * usableW) / canvas.width;
+          if (pageIdx > 0) pdf.addPage();
+          pdf.addImage(sliceData, "PNG", margin, margin, usableW, sliceImgH);
+          rendered += sliceH;
+          pageIdx += 1;
+        }
+      }
+
+      pdf.save("bankops-copilot-one-pager.pdf");
+      toast.success("PDF saved", { id: toastId, description: "bankops-copilot-one-pager.pdf" });
+    } catch (err) {
+      console.error("PDF export failed", err);
+      toast.error("Couldn't generate PDF", {
+        id: toastId,
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Print/screenshot toolbar — hidden on print */}
@@ -31,14 +105,25 @@ const OnePager = () => {
           <div className="flex items-center gap-2">
             <span className="mono text-[11px] text-muted-foreground">A4 · screenshot-friendly</span>
             <Button size="sm" variant="outline" onClick={() => window.print()}>
-              <Printer className="mr-1.5 h-3.5 w-3.5" /> Print / save PDF
+              <Printer className="mr-1.5 h-3.5 w-3.5" /> Print
+            </Button>
+            <Button size="sm" onClick={handleExportPdf} disabled={exporting}>
+              {exporting ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {exporting ? "Generating…" : "Save as PDF"}
             </Button>
           </div>
         </div>
       </div>
 
       {/* Page sheet */}
-      <main className="mx-auto max-w-[920px] px-8 py-10 print:px-10 print:py-8">
+      <main
+        ref={sheetRef}
+        className="mx-auto max-w-[920px] px-8 py-10 print:px-10 print:py-8"
+      >
         {/* Header */}
         <header className="flex items-start justify-between gap-6 border-b border-border/60 pb-6">
           <div className="flex items-start gap-3">

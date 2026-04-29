@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { writeAuditEvent } from "@/lib/security";
 
 export const BreakGlassToggle = () => {
-  const { isManagerOrAdmin } = useAuth();
+  const { isManagerOrAdmin, isDemoUser } = useAuth();
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -27,6 +27,10 @@ export const BreakGlassToggle = () => {
   if (!isManagerOrAdmin) return null;
 
   const toggle = async (next: boolean) => {
+    if (isDemoUser) {
+      toast.info("Break-glass is disabled in the demo session");
+      return;
+    }
     if (next && !confirm("Enable break-glass mode? This freezes ALL token issuance, AI calls, and downloads workspace-wide.")) return;
     setBusy(true);
     const { error } = await supabase
@@ -56,7 +60,11 @@ export const BreakGlassToggle = () => {
       {loading ? (
         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
       ) : (
-        <Switch checked={enabled} disabled={busy} onCheckedChange={toggle} />
+        <Switch
+          checked={enabled}
+          disabled={busy || isDemoUser}
+          onCheckedChange={toggle}
+        />
       )}
     </div>
   );

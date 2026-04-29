@@ -206,6 +206,32 @@ const OnePager = () => {
           </div>
         </section>
 
+        {/* Why not just Copilot? */}
+        <section className="mt-6">
+          <SectionHeading>Why not just Copilot?</SectionHeading>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Microsoft 365 Copilot + Azure OpenAI + Purview cover encryption, tenant residency, and
+            edge DLP. Three gaps remain at the prompt boundary — exactly where this layer sits.
+          </p>
+          <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
+            <Gap
+              n="01"
+              title="PII-in-prompt"
+              body="Purview blocks PII in email & files, but an employee pasting an SA ID into a Copilot prompt is in-tenant — and not redacted before the model sees it."
+            />
+            <Gap
+              n="02"
+              title="Standing access"
+              body="SharePoint/OneDrive permissions are persistent. There is no native concept of a document-scoped, time-bound, single-use token tied to a justified task."
+            />
+            <Gap
+              n="03"
+              title="Cross-employee segmentation"
+              body="Entra groups gate folders, not row-level client records. A support agent can still query Copilot across clients they don't service — without a row-level deny."
+            />
+          </div>
+        </section>
+
         {/* Architecture */}
         <section className="mt-6">
           <SectionHeading>Architecture · no client-side trust</SectionHeading>
@@ -331,6 +357,16 @@ const Stat = ({ value, label }: { value: string; label: string }) => (
       {value}
     </div>
     <div className="mt-1 text-[11px] text-muted-foreground">{label}</div>
+  </div>
+);
+
+const Gap = ({ n, title, body }: { n: string; title: string; body: string }) => (
+  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+    <div className="flex items-center justify-between">
+      <div className="text-[12px] font-semibold">{title}</div>
+      <span className="mono text-[10px] text-destructive">{n}</span>
+    </div>
+    <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">{body}</p>
   </div>
 );
 

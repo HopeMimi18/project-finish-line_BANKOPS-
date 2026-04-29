@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole = "support" | "ops" | "compliance" | "manager" | "admin";
 
+export const DEMO_EMAIL = "demo@bankops.example";
+
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
@@ -15,6 +17,7 @@ interface AuthContextValue {
   loading: boolean;
   signOut: () => Promise<void>;
   isManagerOrAdmin: boolean;
+  isDemoUser: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -100,6 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const roles = impersonatedRoles ?? realRoles;
   const isImpersonating = impersonatedRoles !== null;
   const isManagerOrAdmin = roles.includes("manager") || roles.includes("admin");
+  const isDemoUser = (user?.email ?? "").toLowerCase() === DEMO_EMAIL;
 
   return (
     <AuthContext.Provider
@@ -114,6 +118,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loading,
         signOut,
         isManagerOrAdmin,
+        isDemoUser,
       }}
     >
       {children}

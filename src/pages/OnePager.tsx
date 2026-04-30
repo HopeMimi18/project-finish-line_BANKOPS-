@@ -169,6 +169,9 @@ const OnePager = () => {
           <p className="mono mt-2 text-[11px] italic text-muted-foreground">
             Designed to complement — not replace — enterprise stacks like Microsoft Purview and Azure OpenAI.
           </p>
+          <p className="mono mt-1 text-[11px] italic text-muted-foreground">
+            Inspired by the 2025 SA banking insider-assisted data-breach incident.
+          </p>
         </section>
 
         {/* Problem / Solution row */}

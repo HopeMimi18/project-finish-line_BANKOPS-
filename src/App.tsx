@@ -21,6 +21,7 @@ import ThreatModel from "./pages/ThreatModel";
 import HowItWorks from "./pages/HowItWorks";
 import OnePager from "./pages/OnePager";
 import Roadmap from "./pages/Roadmap";
+import MomentumOnePager from "./pages/MomentumOnePager";
 
 const queryClient = new QueryClient();
 

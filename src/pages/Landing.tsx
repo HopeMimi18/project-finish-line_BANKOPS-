@@ -274,7 +274,7 @@ const Landing = () => {
             <div className="lg:col-span-5">
               <span className="mono text-xs uppercase tracking-wider text-primary">The problem</span>
               <h2 className="display mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
-                Banks have two bad options for AI right now.
+                Banks and insurers have two bad options for AI right now.
               </h2>
             </div>
             <div className="grid gap-4 lg:col-span-7 sm:grid-cols-2">

@@ -146,9 +146,9 @@ const Landing = () => {
                 </span>
               </h1>
               <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
-                A governance layer that sits between bank employees and large language models —
+                A governance layer that sits between employees and large language models —
                 server-side PII redaction, scoped ephemeral tokens, role-based document access,
-                and a tamper-evident audit trail. So ops teams can use AI safely on real client work.
+                and a tamper-evident audit trail. So ops teams in banks and insurers can use AI safely on real client work.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button size="lg" onClick={startDemo} disabled={demoLoading}>

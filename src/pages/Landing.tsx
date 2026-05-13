@@ -281,7 +281,7 @@ const Landing = () => {
               <Card
                 tone="destructive"
                 title="Ban it"
-                body="Employees use ChatGPT on their phones anyway, with zero logging or controls. Shadow AI usage and uncontrolled data leakage."
+                body="Employees use ChatGPT on their phones anyway, with zero logging or controls. Shadow AI usage and uncontrolled data leakage across banking and insurance ops."
               />
               <Card
                 tone="destructive"

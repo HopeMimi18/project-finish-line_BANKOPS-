@@ -286,7 +286,7 @@ const Landing = () => {
               <Card
                 tone="destructive"
                 title="Allow it"
-                body="Customer PII (SA IDs, account numbers, SWIFT codes) flows to third-party LLMs with no redaction, no audit trail, no segregation of duties."
+                body="Customer PII (SA IDs, account numbers, policy numbers, medical histories) flows to third-party LLMs with no redaction, no audit trail, no segregation of duties."
               />
               <Card
                 tone="warning"

@@ -296,7 +296,7 @@ const Landing = () => {
               <Card
                 tone="warning"
                 title="The 2025 incident"
-                body="A R500M+ insider-assisted fraud at a SA tier-1 bank. Every CISO is now being asked: 'what about AI leakage on top of that?'"
+                body="A R500M+ insider-assisted fraud at a SA tier-1 bank. Every CISO — in banking and insurance — is now being asked: 'what about AI leakage on top of that?'"
               />
             </div>
           </div>

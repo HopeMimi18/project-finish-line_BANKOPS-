@@ -91,6 +91,7 @@ const Landing = () => {
             <a href="#architecture" className="hover:text-foreground">Architecture</a>
             <Link to="/threat-model" className="hover:text-foreground">Threat model</Link>
             <Link to="/one-pager" className="hover:text-foreground">One-pager</Link>
+            <Link to="/momentum" className="hover:text-foreground">Insurance pitch</Link>
           </nav>
           <div className="flex items-center gap-2">
             {user ? (

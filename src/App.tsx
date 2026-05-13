@@ -21,6 +21,7 @@ import ThreatModel from "./pages/ThreatModel";
 import HowItWorks from "./pages/HowItWorks";
 import OnePager from "./pages/OnePager";
 import Roadmap from "./pages/Roadmap";
+import MomentumOnePager from "./pages/MomentumOnePager";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/landing" element={<Landing />} />
             <Route path="/threat-model" element={<ThreatModel />} />
             <Route path="/one-pager" element={<OnePager />} />
+            <Route path="/momentum" element={<MomentumOnePager />} />
             <Route path="/auth" element={<Auth />} />
 
             <Route

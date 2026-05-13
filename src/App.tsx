@@ -45,6 +45,7 @@ const App = () => (
             <Route path="/landing" element={<Landing />} />
             <Route path="/threat-model" element={<ThreatModel />} />
             <Route path="/one-pager" element={<OnePager />} />
+            <Route path="/momentum" element={<MomentumOnePager />} />
             <Route path="/auth" element={<Auth />} />
 
             <Route

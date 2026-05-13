@@ -290,8 +290,8 @@ const Landing = () => {
               />
               <Card
                 tone="warning"
-                title="POPIA + PA Directive 3"
-                body="Both require demonstrable controls on cross-border data flows and insider-risk monitoring. Neither extreme satisfies the regulator."
+                title="POPIA + conduct standards"
+                body="Both require demonstrable controls on cross-border data flows and insider-risk monitoring. Banks face PA Directive 3; insurers face FAIS. Neither extreme satisfies the regulator."
               />
               <Card
                 tone="warning"

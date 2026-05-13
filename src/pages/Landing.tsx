@@ -82,7 +82,7 @@ const Landing = () => {
             </div>
             <div className="leading-tight">
               <div className="display text-sm font-semibold">BankOps Copilot</div>
-              <div className="mono text-[10px] text-muted-foreground">AI governance for banks</div>
+              <div className="mono text-[10px] text-muted-foreground">AI governance for banks &amp; insurers</div>
             </div>
           </div>
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
@@ -91,6 +91,7 @@ const Landing = () => {
             <a href="#architecture" className="hover:text-foreground">Architecture</a>
             <Link to="/threat-model" className="hover:text-foreground">Threat model</Link>
             <Link to="/one-pager" className="hover:text-foreground">One-pager</Link>
+            <Link to="/momentum" className="hover:text-foreground">Insurance pitch</Link>
           </nav>
           <div className="flex items-center gap-2">
             {user ? (
@@ -145,9 +146,9 @@ const Landing = () => {
                 </span>
               </h1>
               <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
-                A governance layer that sits between bank employees and large language models —
+                A governance layer that sits between employees and large language models —
                 server-side PII redaction, scoped ephemeral tokens, role-based document access,
-                and a tamper-evident audit trail. So ops teams can use AI safely on real client work.
+                and a tamper-evident audit trail. So ops teams in banks and insurers can use AI safely on real client work.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button size="lg" onClick={startDemo} disabled={demoLoading}>
@@ -274,29 +275,29 @@ const Landing = () => {
             <div className="lg:col-span-5">
               <span className="mono text-xs uppercase tracking-wider text-primary">The problem</span>
               <h2 className="display mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
-                Banks have two bad options for AI right now.
+                Banks and insurers have two bad options for AI right now.
               </h2>
             </div>
             <div className="grid gap-4 lg:col-span-7 sm:grid-cols-2">
               <Card
                 tone="destructive"
                 title="Ban it"
-                body="Employees use ChatGPT on their phones anyway, with zero logging or controls. Shadow AI usage and uncontrolled data leakage."
+                body="Employees use ChatGPT on their phones anyway, with zero logging or controls. Shadow AI usage and uncontrolled data leakage across banking and insurance ops."
               />
               <Card
                 tone="destructive"
                 title="Allow it"
-                body="Customer PII (SA IDs, account numbers, SWIFT codes) flows to third-party LLMs with no redaction, no audit trail, no segregation of duties."
+                body="Customer PII (SA IDs, account numbers, policy numbers, medical histories) flows to third-party LLMs with no redaction, no audit trail, no segregation of duties."
               />
               <Card
                 tone="warning"
-                title="POPIA + PA Directive 3"
-                body="Both require demonstrable controls on cross-border data flows and insider-risk monitoring. Neither extreme satisfies the regulator."
+                title="POPIA + conduct standards"
+                body="Both require demonstrable controls on cross-border data flows and insider-risk monitoring. Banks face PA Directive 3; insurers face FAIS. Neither extreme satisfies the regulator."
               />
               <Card
                 tone="warning"
                 title="The 2025 incident"
-                body="A R500M+ insider-assisted fraud at a SA tier-1 bank. Every CISO is now being asked: 'what about AI leakage on top of that?'"
+                body="A R500M+ insider-assisted fraud at a SA tier-1 bank. Every CISO — in banking and insurance — is now being asked: 'what about AI leakage on top of that?'"
               />
             </div>
           </div>

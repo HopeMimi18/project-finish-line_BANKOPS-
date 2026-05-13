@@ -82,7 +82,7 @@ const Landing = () => {
             </div>
             <div className="leading-tight">
               <div className="display text-sm font-semibold">BankOps Copilot</div>
-              <div className="mono text-[10px] text-muted-foreground">AI governance for banks</div>
+              <div className="mono text-[10px] text-muted-foreground">AI governance for banks &amp; insurers</div>
             </div>
           </div>
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">

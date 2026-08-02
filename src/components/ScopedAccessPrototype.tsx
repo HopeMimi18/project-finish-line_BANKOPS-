@@ -10,10 +10,38 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, Layers, ShieldQuestion, XCircle } from "lucide-react";
 
 type RequestStatus = "pending" | "approved" | "denied";
+
+interface Decision {
+  decidedBy: string;
+  decidedAt: string;
+  expiresOn?: string;
+  scopedView?: string;
+  maskColumns?: boolean;
+  note?: string;
+}
 
 interface AccessRequest {
   id: string;
@@ -24,6 +52,7 @@ interface AccessRequest {
   reason: string;
   ttl: string;
   status: RequestStatus;
+  decision?: Decision;
 }
 
 const initialRequests: AccessRequest[] = [
@@ -146,17 +175,81 @@ const statusBadge = (status: RequestStatus) =>
       ? "bg-destructive/15 text-destructive"
       : "bg-warning/15 text-warning";
 
+const TTL_PRESETS = [
+  { value: "7", label: "7 days" },
+  { value: "14", label: "14 days" },
+  { value: "30", label: "30 days" },
+  { value: "90", label: "90 days (requires CDO sign-off)" },
+];
+
+const addDays = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+
+const suggestViewName = (req: AccessRequest) =>
+  `vw_${req.department.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_${req.id.toLowerCase()}`;
+
 export const ScopedAccessPrototype = () => {
   const [requests, setRequests] = useState(initialRequests);
+  const [active, setActive] = useState<AccessRequest | null>(null);
+  const [mode, setMode] = useState<"approve" | "deny">("approve");
+  const [ttlDays, setTtlDays] = useState("14");
+  const [viewName, setViewName] = useState("");
+  const [maskColumns, setMaskColumns] = useState(true);
+  const [note, setNote] = useState("");
 
-  const decide = (id: string, status: RequestStatus) => {
-    setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+  const openDecision = (req: AccessRequest, nextMode: "approve" | "deny") => {
+    setActive(req);
+    setMode(nextMode);
+    setTtlDays("14");
+    setViewName(suggestViewName(req));
+    setMaskColumns(true);
+    setNote("");
+  };
+
+  const submitDecision = () => {
+    if (!active) return;
+    if (mode === "deny" && note.trim().length < 5) {
+      toast.error("A denial reason is required for the audit trail.");
+      return;
+    }
+    if (mode === "approve" && viewName.trim().length < 3) {
+      toast.error("Give the scoped view a name.");
+      return;
+    }
+
+    const expiresOn = addDays(Number(ttlDays));
+    const decision: Decision = {
+      decidedBy: "you (manager)",
+      decidedAt: new Date().toISOString().slice(0, 10),
+      note: note.trim() || undefined,
+      ...(mode === "approve"
+        ? { expiresOn, scopedView: viewName.trim(), maskColumns }
+        : {}),
+    };
+
+    setRequests((prev) =>
+      prev.map((r) =>
+        r.id === active.id
+          ? {
+              ...r,
+              status: mode === "approve" ? "approved" : "denied",
+              ttl: mode === "approve" ? `${ttlDays} days` : r.ttl,
+              decision,
+            }
+          : r,
+      ),
+    );
+
     toast.success(
-      status === "approved"
-        ? `${id} approved — a department-scoped view would be provisioned with the requested TTL.`
-        : `${id} denied — requester keeps no access to the shared view.`,
+      mode === "approve"
+        ? `${active.id} approved — ${viewName.trim()} provisioned until ${expiresOn}.`
+        : `${active.id} denied — no grant issued.`,
       { description: "Prototype only: no real grants are issued." },
     );
+    setActive(null);
   };
 
   const totals = useMemo(() => {
@@ -225,17 +318,30 @@ export const ScopedAccessPrototype = () => {
                     <TableCell className="text-right">
                       {r.status === "pending" ? (
                         <div className="flex justify-end gap-1.5">
-                          <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
+                          <Button size="sm" variant="outline" onClick={() => openDecision(r, "deny")}>
                             <XCircle className="mr-1 h-3.5 w-3.5" /> Deny
                           </Button>
-                          <Button size="sm" onClick={() => decide(r.id, "approved")}>
+                          <Button size="sm" onClick={() => openDecision(r, "approve")}>
                             <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Scope &amp; approve
                           </Button>
                         </div>
                       ) : (
-                        <span className={`badge-dot capitalize ${statusBadge(r.status)}`}>
-                          {r.status}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`badge-dot capitalize ${statusBadge(r.status)}`}>
+                            {r.status}
+                          </span>
+                          {r.decision?.scopedView && (
+                            <span className="mono text-[10px] text-muted-foreground">
+                              {r.decision.scopedView} · expires {r.decision.expiresOn}
+                              {r.decision.maskColumns ? " · masked" : ""}
+                            </span>
+                          )}
+                          {r.decision?.note && (
+                            <span className="max-w-[220px] text-[10px] text-muted-foreground">
+                              “{r.decision.note}”
+                            </span>
+                          )}
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
@@ -341,6 +447,102 @@ export const ScopedAccessPrototype = () => {
           </p>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {mode === "approve" ? "Scope & approve" : "Deny request"} — {active?.id}
+            </DialogTitle>
+            <DialogDescription>
+              {active?.requester} ({active?.department}) requested{" "}
+              <span className="mono">{active?.columns}</span> from{" "}
+              <span className="mono">{active?.dataset}</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          {mode === "approve" ? (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="scoped-view">New scoped view name</Label>
+                <Input
+                  id="scoped-view"
+                  className="mono"
+                  value={viewName}
+                  onChange={(e) => setViewName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  A dedicated view is provisioned instead of widening the shared one.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Access expires after</Label>
+                <Select value={ttlDays} onValueChange={setTtlDays}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TTL_PRESETS.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Grant auto-revokes on {addDays(Number(ttlDays))}.
+                </p>
+              </div>
+              <label className="flex items-start gap-2.5 text-sm">
+                <Checkbox
+                  checked={maskColumns}
+                  onCheckedChange={(v) => setMaskColumns(v === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  Mask direct identifiers
+                  <span className="block text-xs text-muted-foreground">
+                    Emails, ID numbers and account numbers are tokenised in the scoped view.
+                  </span>
+                </span>
+              </label>
+              <div className="space-y-1.5">
+                <Label htmlFor="decision-note">Approval note (optional)</Label>
+                <Textarea
+                  id="decision-note"
+                  rows={2}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Context recorded on the audit trail"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label htmlFor="deny-note">Reason for denial (required)</Label>
+              <Textarea
+                id="deny-note"
+                rows={3}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="e.g. purpose not compatible with the consent basis for this dataset"
+              />
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActive(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant={mode === "deny" ? "destructive" : "default"}
+              onClick={submitDecision}
+            >
+              {mode === "approve" ? "Provision scoped view" : "Deny request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </article>
   );
 };

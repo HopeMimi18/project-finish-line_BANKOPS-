@@ -10,10 +10,38 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, Layers, ShieldQuestion, XCircle } from "lucide-react";
 
 type RequestStatus = "pending" | "approved" | "denied";
+
+interface Decision {
+  decidedBy: string;
+  decidedAt: string;
+  expiresOn?: string;
+  scopedView?: string;
+  maskColumns?: boolean;
+  note?: string;
+}
 
 interface AccessRequest {
   id: string;
@@ -24,6 +52,7 @@ interface AccessRequest {
   reason: string;
   ttl: string;
   status: RequestStatus;
+  decision?: Decision;
 }
 
 const initialRequests: AccessRequest[] = [

@@ -318,17 +318,30 @@ export const ScopedAccessPrototype = () => {
                     <TableCell className="text-right">
                       {r.status === "pending" ? (
                         <div className="flex justify-end gap-1.5">
-                          <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
+                          <Button size="sm" variant="outline" onClick={() => openDecision(r, "deny")}>
                             <XCircle className="mr-1 h-3.5 w-3.5" /> Deny
                           </Button>
-                          <Button size="sm" onClick={() => decide(r.id, "approved")}>
+                          <Button size="sm" onClick={() => openDecision(r, "approve")}>
                             <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Scope &amp; approve
                           </Button>
                         </div>
                       ) : (
-                        <span className={`badge-dot capitalize ${statusBadge(r.status)}`}>
-                          {r.status}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`badge-dot capitalize ${statusBadge(r.status)}`}>
+                            {r.status}
+                          </span>
+                          {r.decision?.scopedView && (
+                            <span className="mono text-[10px] text-muted-foreground">
+                              {r.decision.scopedView} · expires {r.decision.expiresOn}
+                              {r.decision.maskColumns ? " · masked" : ""}
+                            </span>
+                          )}
+                          {r.decision?.note && (
+                            <span className="max-w-[220px] text-[10px] text-muted-foreground">
+                              “{r.decision.note}”
+                            </span>
+                          )}
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>

@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
+import { ScopedAccessPrototype } from "@/components/ScopedAccessPrototype";
 import {
   ShieldCheck,
   Sparkles,
@@ -12,6 +13,7 @@ import {
   CheckCircle2,
   CircleAlert,
   Rocket,
+  Layers,
 } from "lucide-react";
 
 type Status = "shipped" | "partial" | "gap";

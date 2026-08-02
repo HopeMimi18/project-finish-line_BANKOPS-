@@ -9,6 +9,7 @@ import {
   Building2,
   BookOpen,
   ListChecks,
+  Layers,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -35,6 +36,7 @@ const mainItems = [
   { title: "Tokens", url: "/tokens", icon: KeyRound },
   { title: "AI Assist", url: "/assist", icon: Sparkles },
   { title: "Audit", url: "/audit", icon: ShieldCheck },
+  { title: "Access Requests", url: "/access-requests", icon: Layers },
 ];
 
 export function AppSidebar() {

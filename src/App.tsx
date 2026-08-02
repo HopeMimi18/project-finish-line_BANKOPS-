@@ -21,6 +21,7 @@ import ThreatModel from "./pages/ThreatModel";
 import HowItWorks from "./pages/HowItWorks";
 import OnePager from "./pages/OnePager";
 import Roadmap from "./pages/Roadmap";
+import AccessRequests from "./pages/AccessRequests";
 import MomentumOnePager from "./pages/MomentumOnePager";
 import OAuthConsent from "./pages/OAuthConsent";
 
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/tokens" element={<Tokens />} />
               <Route path="/assist" element={<Assist />} />
               <Route path="/audit" element={<Audit />} />
+              <Route path="/access-requests" element={<AccessRequests />} />
               <Route
                 path="/admin"
                 element={

@@ -225,6 +225,31 @@ const controls: Control[] = [
   },
 ];
 
+const accessGovernance: Control = {
+  id: "scoped-views",
+  title: "Data Access Requests & Scoped Views",
+  icon: Layers,
+  shipped: [
+    "Per-client row gating (user_can_view_doc_v2) — an employee only sees documents for clients they're assigned to",
+    "Classification gates so a shared dataset can't be widened by role alone",
+    "Every grant use and denial lands in the hash-chained audit trail",
+  ],
+  gaps: [
+    "Root cause sits upstream: warehouse teams reuse one department's data view for a second department instead of building a scoped one",
+    "No request/approval workflow — access is granted out-of-band and never expires",
+    "No entitlement inventory: nobody can answer 'who can read this view and why'",
+    "No periodic recertification, so leavers and movers keep stale access",
+  ],
+  upgrades: [
+    "Purpose-bound access requests: requester states dataset, columns, reason and TTL; approval provisions a NEW department-scoped view, never a share of an existing one",
+    "RLS on base tables by default so a leaked view still can't return other departments' rows",
+    "Column masking policies attached to the view definition, not to the consumer",
+    "Time-boxed grants with auto-expiry and re-request instead of permanent entitlements",
+    "Quarterly access certification: named owner signs off each entitlement, unreviewed access auto-revokes",
+    "Entitlement graph (user → role → view → columns → rows) exported as audit evidence",
+  ],
+};
+
 const Roadmap = () => {
   const totals = controls.reduce(
     (acc, c) => {
@@ -283,6 +308,23 @@ const Roadmap = () => {
           {controls.map((c) => (
             <ControlCard key={c.id} control={c} />
           ))}
+        </section>
+
+        {/* Data access requests / scoped views */}
+        <section className="space-y-5">
+          <div>
+            <h2 className="display text-lg font-semibold tracking-tight">
+              Data Access Requests / Scoped Views
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Most insider leaks don't start with a hack — they start with a shortcut: a second
+              department needs part of a dataset, so they're handed the first department's existing
+              view. Here's how we'd close that loop, plus a working prototype of the workflow and the
+              access certification report it produces.
+            </p>
+          </div>
+          <ControlCard control={accessGovernance} />
+          <ScopedAccessPrototype />
         </section>
       </div>
     </div>

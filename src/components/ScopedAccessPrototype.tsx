@@ -447,6 +447,102 @@ export const ScopedAccessPrototype = () => {
           </p>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {mode === "approve" ? "Scope & approve" : "Deny request"} — {active?.id}
+            </DialogTitle>
+            <DialogDescription>
+              {active?.requester} ({active?.department}) requested{" "}
+              <span className="mono">{active?.columns}</span> from{" "}
+              <span className="mono">{active?.dataset}</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          {mode === "approve" ? (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="scoped-view">New scoped view name</Label>
+                <Input
+                  id="scoped-view"
+                  className="mono"
+                  value={viewName}
+                  onChange={(e) => setViewName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  A dedicated view is provisioned instead of widening the shared one.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Access expires after</Label>
+                <Select value={ttlDays} onValueChange={setTtlDays}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TTL_PRESETS.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Grant auto-revokes on {addDays(Number(ttlDays))}.
+                </p>
+              </div>
+              <label className="flex items-start gap-2.5 text-sm">
+                <Checkbox
+                  checked={maskColumns}
+                  onCheckedChange={(v) => setMaskColumns(v === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  Mask direct identifiers
+                  <span className="block text-xs text-muted-foreground">
+                    Emails, ID numbers and account numbers are tokenised in the scoped view.
+                  </span>
+                </span>
+              </label>
+              <div className="space-y-1.5">
+                <Label htmlFor="decision-note">Approval note (optional)</Label>
+                <Textarea
+                  id="decision-note"
+                  rows={2}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Context recorded on the audit trail"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label htmlFor="deny-note">Reason for denial (required)</Label>
+              <Textarea
+                id="deny-note"
+                rows={3}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="e.g. purpose not compatible with the consent basis for this dataset"
+              />
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActive(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant={mode === "deny" ? "destructive" : "default"}
+              onClick={submitDecision}
+            >
+              {mode === "approve" ? "Provision scoped view" : "Deny request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </article>
   );
 };

@@ -175,17 +175,81 @@ const statusBadge = (status: RequestStatus) =>
       ? "bg-destructive/15 text-destructive"
       : "bg-warning/15 text-warning";
 
+const TTL_PRESETS = [
+  { value: "7", label: "7 days" },
+  { value: "14", label: "14 days" },
+  { value: "30", label: "30 days" },
+  { value: "90", label: "90 days (requires CDO sign-off)" },
+];
+
+const addDays = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+
+const suggestViewName = (req: AccessRequest) =>
+  `vw_${req.department.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_${req.id.toLowerCase()}`;
+
 export const ScopedAccessPrototype = () => {
   const [requests, setRequests] = useState(initialRequests);
+  const [active, setActive] = useState<AccessRequest | null>(null);
+  const [mode, setMode] = useState<"approve" | "deny">("approve");
+  const [ttlDays, setTtlDays] = useState("14");
+  const [viewName, setViewName] = useState("");
+  const [maskColumns, setMaskColumns] = useState(true);
+  const [note, setNote] = useState("");
 
-  const decide = (id: string, status: RequestStatus) => {
-    setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+  const openDecision = (req: AccessRequest, nextMode: "approve" | "deny") => {
+    setActive(req);
+    setMode(nextMode);
+    setTtlDays("14");
+    setViewName(suggestViewName(req));
+    setMaskColumns(true);
+    setNote("");
+  };
+
+  const submitDecision = () => {
+    if (!active) return;
+    if (mode === "deny" && note.trim().length < 5) {
+      toast.error("A denial reason is required for the audit trail.");
+      return;
+    }
+    if (mode === "approve" && viewName.trim().length < 3) {
+      toast.error("Give the scoped view a name.");
+      return;
+    }
+
+    const expiresOn = addDays(Number(ttlDays));
+    const decision: Decision = {
+      decidedBy: "you (manager)",
+      decidedAt: new Date().toISOString().slice(0, 10),
+      note: note.trim() || undefined,
+      ...(mode === "approve"
+        ? { expiresOn, scopedView: viewName.trim(), maskColumns }
+        : {}),
+    };
+
+    setRequests((prev) =>
+      prev.map((r) =>
+        r.id === active.id
+          ? {
+              ...r,
+              status: mode === "approve" ? "approved" : "denied",
+              ttl: mode === "approve" ? `${ttlDays} days` : r.ttl,
+              decision,
+            }
+          : r,
+      ),
+    );
+
     toast.success(
-      status === "approved"
-        ? `${id} approved — a department-scoped view would be provisioned with the requested TTL.`
-        : `${id} denied — requester keeps no access to the shared view.`,
+      mode === "approve"
+        ? `${active.id} approved — ${viewName.trim()} provisioned until ${expiresOn}.`
+        : `${active.id} denied — no grant issued.`,
       { description: "Prototype only: no real grants are issued." },
     );
+    setActive(null);
   };
 
   const totals = useMemo(() => {

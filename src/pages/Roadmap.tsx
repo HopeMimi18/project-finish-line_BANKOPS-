@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/PageHeader";
-import { ScopedAccessPrototype } from "@/components/ScopedAccessPrototype";
 import {
   ShieldCheck,
   Sparkles,
@@ -319,12 +318,11 @@ const Roadmap = () => {
             <p className="mt-1 text-sm text-muted-foreground">
               Most insider leaks don't start with a hack — they start with a shortcut: a second
               department needs part of a dataset, so they're handed the first department's existing
-              view. Here's how we'd close that loop, plus a working prototype of the workflow and the
-              access certification report it produces.
+              view. Here's how we'd close that loop — the working prototype lives under{" "}
+              <span className="font-medium text-foreground">Access Requests</span> in the sidebar.
             </p>
           </div>
           <ControlCard control={accessGovernance} />
-          <ScopedAccessPrototype />
         </section>
       </div>
     </div>

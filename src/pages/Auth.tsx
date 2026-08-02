@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,13 +32,17 @@ const Auth = () => {
   const [signInPassword, setSignInPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
 
+  const [searchParams] = useSearchParams();
+  const rawNext = searchParams.get("next");
+  const nextPath = rawNext && /^\/(?!\/)/.test(rawNext) ? rawNext : "/";
+
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [signUpUsername, setSignUpUsername] = useState("");
 
   useEffect(() => {
-    if (!loading && user) navigate("/", { replace: true });
-  }, [user, loading, navigate]);
+    if (!loading && user) navigate(nextPath, { replace: true });
+  }, [user, loading, navigate, nextPath]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +88,7 @@ const Auth = () => {
     }
 
     toast.success("Signed in");
-    navigate("/", { replace: true });
+    navigate(nextPath, { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -101,7 +105,7 @@ const Auth = () => {
       email: emailParsed.data,
       password: pwParsed.data,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${window.location.origin}${nextPath}`,
         data: { username: userParsed.data, display_name: userParsed.data },
       },
     });
@@ -115,7 +119,7 @@ const Auth = () => {
       return;
     }
     toast.success("Account created. You're signed in.");
-    navigate("/", { replace: true });
+    navigate(nextPath, { replace: true });
   };
 
   return (

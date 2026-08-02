@@ -2,3 +2,6 @@ project_id = "pqhcijtvnfxrcrxolwph"
 
 [functions.demo-login]
 verify_jwt = false
+
+[functions.mcp]
+verify_jwt = false

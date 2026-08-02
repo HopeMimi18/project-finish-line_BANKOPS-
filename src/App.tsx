@@ -22,6 +22,7 @@ import HowItWorks from "./pages/HowItWorks";
 import OnePager from "./pages/OnePager";
 import Roadmap from "./pages/Roadmap";
 import MomentumOnePager from "./pages/MomentumOnePager";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/one-pager" element={<OnePager />} />
             <Route path="/momentum" element={<MomentumOnePager />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
             <Route
               element={

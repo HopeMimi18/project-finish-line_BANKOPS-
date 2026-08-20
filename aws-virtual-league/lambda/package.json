@@ -1,0 +1,19 @@
+{
+  "name": "bankops-aws-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lambda layer for BankOps on AWS",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.131",
+    "@types/node": "^20.10.0",
+    "@types/pg": "^8.10.9",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "aws-jwt-verify": "^4.0.0",
+    "aws-sdk": "^2.1511.0",
+    "pg": "^8.11.3",
+    "zod": "^3.22.4",
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
